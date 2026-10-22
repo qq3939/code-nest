@@ -1,4 +1,4 @@
-// 与后端 project-a-api 模块里的 VO / DTO 一一对应。
+// 与后端 code-nest-api 模块里的 VO / DTO 一一对应。
 // 后端把所有 Long 序列化成字符串（避免 JS 丢精度，见 docs/pitfalls.md P-001），所以 ID 一律是 string。
 
 export interface Result<T> {

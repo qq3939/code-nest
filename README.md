@@ -1,6 +1,4 @@
-# project-a
-
-> 名称是占位符，正式名称定下来后执行 `bash scripts/rename-project.sh <项目名> <GitHub 用户名>` 一键替换。
+# code-nest（码巢）
 
 一个面向学习的开发者社区（写文章、点赞评论、关注动态、通知、排行、搜索、管理后台），用 Java 17 + Spring Boot 3.5 + Vue 3 实现。业务设计参考了 [技术派](https://github.com/itwanger/paicoding)（`springboot3&vue3` 分支），代码全部独立编写，没有复制。
 
@@ -244,7 +242,7 @@ sequenceDiagram
 只需要 Docker（Windows / macOS 用 Docker Desktop，内存至少分 6 GB）。
 
 ```bash
-git clone <仓库地址> project-a && cd project-a
+git clone <仓库地址> code-nest && cd code-nest
 cp .env.example .env          # 按注释修改密码；JWT_SECRET 用 openssl rand -base64 48 生成
 docker compose up -d --build  # 第一次构建镜像需要几分钟
 docker compose ps             # 等所有服务变成 healthy
@@ -279,8 +277,8 @@ docker compose up -d mysql redis rabbitmq minio minio-init
 
 # 后端（dev profile 会直接读取仓库根目录的 .env）
 cd backend
-./mvnw -pl project-a-web -am spring-boot:run -Dspring-boot.run.profiles=dev
-# Windows：mvnw.cmd -pl project-a-web -am spring-boot:run "-Dspring-boot.run.profiles=dev"
+./mvnw -pl code-nest-web -am spring-boot:run -Dspring-boot.run.profiles=dev
+# Windows：mvnw.cmd -pl code-nest-web -am spring-boot:run "-Dspring-boot.run.profiles=dev"
 
 # 前端（另开一个终端），Vite 把 /api 代理到 8081
 cd frontend
@@ -307,7 +305,7 @@ npm run type-check && npm run build
 
 ```bash
 # 1. 造数：1 万用户、5 万文章、30 万关注（4 个大 V 各 6000 粉丝）、30 万点赞等，约 1 分钟
-cd backend && ./mvnw -B -DskipTests package && cd project-a-web
+cd backend && ./mvnw -B -DskipTests package && cd code-nest-web
 java -jar target/app.jar --spring.profiles.active=dev,datagen
 
 # 2. 带 perf profile 启动后端
@@ -355,16 +353,16 @@ docker compose logs -f backend      # 观察请求落在哪个实例
 ## 工程结构
 
 ```
-project-a/
+code-nest/
 ├── backend/                     Maven 多模块（Java 17，Spring Boot 3.5）
-│   ├── project-a-api/           DTO、VO、枚举、事件定义
-│   ├── project-a-core/          统一返回、JWT、Redis、MQ 拓扑、限流、敏感词前缀树、分布式锁
-│   ├── project-a-service/       业务：用户、文章、计数、互动、关注、Feed、通知、outbox、排行、搜索、缓存、管理
-│   └── project-a-web/           Controller、拦截器、SSE、定时任务、造数、Flyway 脚本、集成测试
+│   ├── code-nest-api/           DTO、VO、枚举、事件定义
+│   ├── code-nest-core/          统一返回、JWT、Redis、MQ 拓扑、限流、敏感词前缀树、分布式锁
+│   ├── code-nest-service/       业务：用户、文章、计数、互动、关注、Feed、通知、outbox、排行、搜索、缓存、管理
+│   └── code-nest-web/           Controller、拦截器、SSE、定时任务、造数、Flyway 脚本、集成测试
 ├── frontend/                    Vue 3 + TypeScript + Vite + Element Plus + Pinia
 ├── deploy/                      Nginx、ES（带 IK 分词）、MinIO 初始化、Prometheus / Grafana
 ├── perf/                        JMeter 计划生成、压测脚本、结果
-├── scripts/rename-project.sh    替换占位名
+├── scripts/rename-project.sh    占位名替换脚本（已执行，见 D-027）
 ├── docs/
 │   ├── SPEC.md                  需求规格
 │   ├── decisions.md             技术选型记录

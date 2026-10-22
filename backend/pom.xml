@@ -11,18 +11,18 @@
         <relativePath/>
     </parent>
 
-    <groupId>io.github.changeme</groupId>
-    <artifactId>project-a-parent</artifactId>
+    <groupId>io.github.qq3939</groupId>
+    <artifactId>code-nest-parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>project-a</name>
+    <name>code-nest</name>
     <description>面向开发者的技术社区（参考技术派的业务设计，代码从零编写）</description>
 
     <modules>
-        <module>project-a-api</module>
-        <module>project-a-core</module>
-        <module>project-a-service</module>
-        <module>project-a-web</module>
+        <module>code-nest-api</module>
+        <module>code-nest-core</module>
+        <module>code-nest-service</module>
+        <module>code-nest-web</module>
     </modules>
 
     <properties>
@@ -40,18 +40,18 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>io.github.changeme</groupId>
-                <artifactId>project-a-api</artifactId>
+                <groupId>io.github.qq3939</groupId>
+                <artifactId>code-nest-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.github.changeme</groupId>
-                <artifactId>project-a-core</artifactId>
+                <groupId>io.github.qq3939</groupId>
+                <artifactId>code-nest-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>io.github.changeme</groupId>
-                <artifactId>project-a-service</artifactId>
+                <groupId>io.github.qq3939</groupId>
+                <artifactId>code-nest-service</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

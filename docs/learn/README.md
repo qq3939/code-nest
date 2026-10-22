@@ -18,12 +18,12 @@
 
 | 缩写 | 实际目录 |
 |---|---|
-| `api/…` | `backend/project-a-api/src/main/java/io/github/changeme/projecta/api/…` |
-| `core/…` | `backend/project-a-core/src/main/java/io/github/changeme/projecta/core/…` |
-| `service/…` | `backend/project-a-service/src/main/java/io/github/changeme/projecta/service/…` |
-| `web/…` | `backend/project-a-web/src/main/java/io/github/changeme/projecta/web/…` |
-| `IT/…` | `backend/project-a-web/src/test/java/io/github/changeme/projecta/web/…` |
-| `lua/…` | `backend/project-a-*/src/main/resources/scripts/…` |
+| `api/…` | `backend/code-nest-api/src/main/java/io/github/qq3939/codenest/api/…` |
+| `core/…` | `backend/code-nest-core/src/main/java/io/github/qq3939/codenest/core/…` |
+| `service/…` | `backend/code-nest-service/src/main/java/io/github/qq3939/codenest/service/…` |
+| `web/…` | `backend/code-nest-web/src/main/java/io/github/qq3939/codenest/web/…` |
+| `IT/…` | `backend/code-nest-web/src/test/java/io/github/qq3939/codenest/web/…` |
+| `lua/…` | `backend/code-nest-*/src/main/resources/scripts/…` |
 | `fe/…` | `frontend/src/…` |
 
 行号以本次提交为准；以后代码改动可能会让行号偏移几行，按方法名搜索即可。
@@ -32,7 +32,7 @@
 
 ```bash
 cd backend
-./mvnw -B -pl project-a-web -am verify -Dit.test=AuthIT -Dtest=none -Dsurefire.failIfNoSpecifiedTests=false
+./mvnw -B -pl code-nest-web -am verify -Dit.test=AuthIT -Dtest=none -Dsurefire.failIfNoSpecifiedTests=false
 ```
 
 集成测试需要本机 Docker 在运行（Testcontainers 会自动拉起 MySQL、Redis、RabbitMQ）。

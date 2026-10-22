@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.qq3939.codenest.service.article.mapper.TagMapper">
+
+    <select id="selectByArticleIds" resultType="io.github.qq3939.codenest.service.article.ArticleTagRow">
+        SELECT at.article_id AS articleId, t.id AS tagId, t.name AS tagName
+        FROM article_tag at
+                 JOIN tag t ON t.id = at.tag_id
+        WHERE at.article_id IN
+        <foreach collection="articleIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+        ORDER BY t.id
+    </select>
+
+    <!-- 两个人同时新建同名标签时，唯一索引保证只有一条，另一条被 IGNORE -->
+    <insert id="insertIgnore">
+        INSERT IGNORE INTO tag (id, name) VALUES (#{tag.id}, #{tag.name})
+    </insert>
+</mapper>

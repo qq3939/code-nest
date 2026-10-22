@@ -15,7 +15,7 @@ export default defineConfig({
       '/files': {
         target: 'http://localhost:9000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/files/, '/project-a'),
+        rewrite: (path) => path.replace(/^\/files/, '/code-nest'),
       },
     },
   },

@@ -1,7 +1,7 @@
 # 设计决策记录
 
 每个关键选型记一条，编号依次递增。重点写清"为什么"，面试时会被追问。
-路径里的 `…/` 是 `backend/<模块>/src/main/java/io/github/changeme/projecta/` 的缩写。
+路径里的 `…/` 是 `backend/<模块>/src/main/java/io/github/qq3939/codenest/` 的缩写。
 
 ## D-000 模板（复制后填写）
 
@@ -26,7 +26,7 @@
 ## D-002 项目名和包名先用占位符
 
 - **背景**：SPEC 第 1 节要求开工前确认项目正式名称和 GitHub 用户名，用户要求"直接做出最完整的版本"，没有提供这两项。
-- **方案**：项目名 `project-a`，包名 `io.github.changeme.projecta`，提供 `scripts/rename-project.sh` 一键替换（目录、包名、groupId、Redis 前缀、Compose 名称）。
+- **方案**：项目名先用 `project-a`，包名 `io.github.changeme.projecta`，提供 `scripts/rename-project.sh` 一键替换（目录、包名、groupId、Redis 前缀、Compose 名称）。
 - **备选**：停下来等用户回复——用户明确要求直接做。
 - **为什么选它**：不阻塞进度，改名是机械操作，脚本化以后几秒钟完成。
 - **代价与风险**：改名后需要重新 `docker compose down -v`（Redis key 前缀、MinIO 桶名都会变）。
@@ -39,7 +39,7 @@
 - **备选**：每张表都加自增/雪花 `id`，再给业务键加唯一索引。
 - **为什么选它**：InnoDB 的聚簇索引就是主键。用业务键做主键，按文章查计数是一次主键查找，不需要回表；`INSERT … ON DUPLICATE KEY UPDATE` 也天然按主键去重，计数写回（D-008）可以直接 upsert。
 - **代价与风险**：MyBatis-Plus 的 `BaseMapper.updateById` 需要用 `@TableId` 标注业务键字段，联合主键的 article_tag 不能用 `selectById`，只能用条件构造器。
-- **相关代码**：`backend/project-a-web/src/main/resources/db/migration/V1__init_schema.sql:61`、`:119`、`:129`
+- **相关代码**：`backend/code-nest-web/src/main/resources/db/migration/V1__init_schema.sql:61`、`:119`、`:129`
 
 ## D-004 主键用雪花 ID，由应用生成
 
@@ -84,7 +84,7 @@
 - **备选**：在 Redis 里累积增量，写回时 `UPDATE x = x + delta` 并清零增量。
 - **为什么选它**：写绝对值是幂等的：写回重复执行、两个实例同时写回、失败重试，结果都一样。写增量的话，"写库成功但清零失败"会导致重复累加。
 - **代价与风险**：Redis 的值一旦错了（比如被误删后从 0 开始累加），会把错误值覆盖进库，所以初始化 Hash 时一定从库里加载（`count_init.lua`），并靠每日对账修正。
-- **相关代码**：`…/service/count/RedisBatchCountService.java:110`、`backend/project-a-service/src/main/resources/mapper/ArticleStatMapper.xml:22`
+- **相关代码**：`…/service/count/RedisBatchCountService.java:110`、`backend/code-nest-service/src/main/resources/mapper/ArticleStatMapper.xml:22`
 
 ## D-009 user_stat 的"获赞数、阅读数"读时汇总，不实时维护
 
@@ -93,7 +93,7 @@
 - **备选**：每次点赞同时 `UPDATE user_stat SET like_received = like_received + 1`。
 - **为什么选它**：避免行锁热点；个人主页的访问频率远低于点赞。
 - **代价与风险**：作者文章特别多时，这条聚合 SQL 要扫描他的全部文章（走 `idx_author_status_publish` 索引）；可以再加一层缓存。
-- **相关代码**：`backend/project-a-service/src/main/resources/mapper/UserStatMapper.xml:20`
+- **相关代码**：`backend/code-nest-service/src/main/resources/mapper/UserStatMapper.xml:20`
 
 ## D-010 Feed：收件箱 + 发件箱，hybrid 下大 V 走拉模式
 
@@ -102,7 +102,7 @@
 - **备选**：纯推（大 V 发文写放大，粉丝多时扇出慢、内存大）；纯拉（每次读都要合并所有关注者的发件箱，关注多时读放大）。
 - **为什么选它**：读多写少的社区，普通用户占绝大多数，推模式读最快；只有少数大 V 改成拉，归并的路数很少。三种模式都实现了，可以在实验开关里切换并压测对比（见 `docs/perf-report.md`）。
 - **代价与风险**：分页游标要能跨多个来源：用"上一页最后一条的 score + 同 score 已返回的条数"做游标（`FeedCursor`），避免同一毫秒发布的文章被重复或漏掉。
-- **相关代码**：`…/service/feed/FeedService.java:98`、`…/service/feed/FeedMerger.java:29`、`backend/project-a-service/src/main/resources/scripts/feed_push.lua`
+- **相关代码**：`…/service/feed/FeedService.java:98`、`…/service/feed/FeedMerger.java:29`、`backend/code-nest-service/src/main/resources/scripts/feed_push.lua`
 
 ## D-011 可靠消息：本地消息表（outbox）而不是 RocketMQ 事务消息
 
@@ -129,7 +129,7 @@
 - **备选**：统一用一张"已消费消息表"——每次消费多一次写库，且要和业务操作放进同一个事务。
 - **为什么选它**：利用操作本身的特性，零额外成本。
 - **代价与风险**：新加消费者时必须想清楚它是否幂等，代码注释里每个 `@RabbitListener` 上都写了幂等手段。
-- **相关代码**：`…/service/mq/EventConsumers.java:31`、`…/service/notify/NotifyService.java:45`、`backend/project-a-service/src/main/resources/scripts/rank_add.lua`
+- **相关代码**：`…/service/mq/EventConsumers.java:31`、`…/service/notify/NotifyService.java:45`、`backend/code-nest-service/src/main/resources/scripts/rank_add.lua`
 
 ## D-014 不保证消息顺序，消费时以数据库当前状态为准
 
@@ -156,7 +156,7 @@
 - **备选**：docker profile 默认关闭——那压测时还要改环境变量，容易忘。
 - **为什么选它**：本项目的 docker profile 就是本机实验环境。
 - **代价与风险**：真正部署到公网时必须用 prod profile 或设 `DEV_TOOLS_ENABLED=false`，README 里有提醒。
-- **相关代码**：`backend/project-a-web/src/main/resources/application-docker.yml:18`、`…/service/admin/StrategyService.java:53`
+- **相关代码**：`backend/code-nest-web/src/main/resources/application-docker.yml:18`、`…/service/admin/StrategyService.java:53`
 
 ## D-017 看板：当天数据在 Redis，凌晨归档到 daily_stat
 
@@ -174,7 +174,7 @@
 - **备选**：固定窗口计数（INCR + EXPIRE，窗口边界处可以放过 2 倍请求）；令牌桶（平滑，但实现复杂，突发控制不直观）；Guava RateLimiter（单机）。
 - **为什么选它**：滑动窗口精确，ZSet 实现简单直观；"先查后写"避免一个维度被拒、另一个维度白白计数。
 - **代价与风险**：每次请求在 ZSet 里存一个成员，窗口内请求很多时（比如 1 分钟 10 万次）内存会上去，所以只用在低频接口上。
-- **相关代码**：`…/core/ratelimit/RateLimitAspect.java:43`、`backend/project-a-core/src/main/resources/scripts/sliding_window.lua`
+- **相关代码**：`…/core/ratelimit/RateLimitAspect.java:43`、`backend/code-nest-core/src/main/resources/scripts/sliding_window.lua`
 
 ## D-019 敏感词：DFA 前缀树，三个级别
 
@@ -192,7 +192,7 @@
 - **备选**：MySQL 全文索引 + ngram 分词（效果差，不能高亮）。
 - **为什么选它**：ES 是面试高频考点；降级保证没有 ES 也能演示完整功能。
 - **代价与风险**：IK 插件要和 ES 版本严格一致（见 P-006）；`LIKE '%词%'` 不走索引，数据量大时很慢，只作为兜底。
-- **相关代码**：`…/service/search/SearchService.java:49`、`backend/project-a-service/src/main/resources/es/article-mapping.json`
+- **相关代码**：`…/service/search/SearchService.java:49`、`backend/code-nest-service/src/main/resources/es/article-mapping.json`
 
 ## D-021 定时任务：Redisson 分布式锁，拿不到锁就跳过
 
@@ -247,3 +247,12 @@
 - **为什么选它**：计划可以代码审阅、可复现；跑法统一。
 - **代价与风险**：改计划要改 Python 脚本再重新生成。
 - **相关代码**：`perf/tools/gen_plans.py`、`perf/run.sh`
+
+## D-027 正式名称定为 code-nest
+
+- **背景**：D-002 的占位名需要替换成正式名称；用户确认 GitHub 用户名为 `qq3939`，并采纳 `code-nest`（码巢）。
+- **方案**：执行 `bash scripts/rename-project.sh code-nest qq3939`：模块目录 `backend/code-nest-*`、包名 `io.github.qq3939.codenest`、启动类 `CodeNestApplication`、数据库 `code_nest`、Redis 前缀和 MinIO 桶名同步更改。
+- **备选**：单词形式 `codenest`——启动类会变成 `Codenest`，可读性差。
+- **为什么选它**：两个单词用连字符分隔，脚本能自然生成 `CodeNest`、`code_nest`、`codenest` 三种形式；名字短、和"开发者聚集写作"的定位相符。
+- **代价与风险**：已有的 Docker 数据卷里还是旧库名和旧桶名，需要 `docker compose down -v` 后重建；GitHub 仓库也要改名为 `code-nest`。
+- **相关代码**：`scripts/rename-project.sh`

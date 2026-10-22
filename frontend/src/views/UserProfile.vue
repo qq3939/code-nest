@@ -53,7 +53,7 @@ watch(page, loadTab)
 onMounted(async () => {
   try {
     profile.value = await userApi.profile(id)
-    document.title = `${profile.value.user.nickname} - project-a`
+    document.title = `${profile.value.user.nickname} - code-nest`
   } catch {
     notFound.value = true
     return

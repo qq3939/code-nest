@@ -65,7 +65,7 @@ router.beforeEach((to) => {
 })
 
 router.afterEach((to) => {
-  document.title = to.meta.title ? `${to.meta.title} - project-a` : 'project-a 技术社区'
+  document.title = to.meta.title ? `${to.meta.title} - code-nest` : 'code-nest 技术社区'
 })
 
 export default router

@@ -95,7 +95,7 @@
 ## P-011 缓存重建锁的 key 和数据 key 是同一个
 
 - **现象**：两级缓存的集成测试里，`get` 读到一个 UUID 字符串，JSON 解析失败。
-- **原因**：重建锁的 key 原来是用 `key.replace("project-a:cache:", "project-a:lock:cache:")` 算出来的。测试用的 key 不以 `cache:` 开头，`replace` 没有替换任何内容，锁 key 就等于数据 key，`SET NX` 把锁的令牌（UUID）写进了数据 key。业务代码里的 key 恰好都以 `cache:` 开头，所以平时没暴露。
+- **原因**：重建锁的 key 原来是用 `key.replace("code-nest:cache:", "code-nest:lock:cache:")` 算出来的。测试用的 key 不以 `cache:` 开头，`replace` 没有替换任何内容，锁 key 就等于数据 key，`SET NX` 把锁的令牌（UUID）写进了数据 key。业务代码里的 key 恰好都以 `cache:` 开头，所以平时没暴露。
 - **解决**：改成 `lockKeyOf(key)`：去掉前缀后统一加 `lock:`，对任何 key 都不会和原 key 相同。
 - **教训**：字符串替换生成 key 时，要考虑"没匹配上"的情况；集成测试最好用和业务不同的 key 形态，能发现隐含假设。
 - **相关提交**：31a46ac（`…/service/cache/CacheService.java:267`）
@@ -146,7 +146,7 @@
 - **原因**：Lettuce 默认所有命令共用一条长连接，但 `executePipelined` 和事务这类命令需要独占连接，没开连接池时每次调用都会新建一条 TCP 连接、用完关掉。高并发下短时间内建连/断连太多，超过了 Redis 和本机网络栈的承受能力。
 - **解决**：引入 `commons-pool2`，在 `application.yml` 里打开 `spring.data.redis.lettuce.pool`（max-active 32、min-idle 4、max-wait 2s），独占连接从池里借、用完归还。重跑后错误率归零。
 - **教训**：用到 pipeline/事务的项目要开连接池；功能测试发现不了这类问题，必须压测。
-- **相关提交**：本次提交（`project-a-core/pom.xml`、`application.yml`）
+- **相关提交**：本次提交（`code-nest-core/pom.xml`、`application.yml`）
 
 ## P-018 定时任务加了分布式锁，仍可能被两个实例先后各执行一次
 

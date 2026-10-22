@@ -24,7 +24,7 @@ const busy = ref(false)
 onMounted(async () => {
   try {
     article.value = await articleApi.detail(id)
-    document.title = `${article.value.title} - project-a`
+    document.title = `${article.value.title} - code-nest`
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) notFound.value = true
   }

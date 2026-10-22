@@ -35,7 +35,7 @@ async function submit() {
 <template>
   <div class="auth">
     <div class="pa-card box">
-      <h2>登录 project-a</h2>
+      <h2>登录 code-nest</h2>
       <el-form ref="formRef" :model="form" :rules="rules" label-position="top" @submit.prevent="submit">
         <el-form-item label="用户名" prop="username">
           <el-input v-model="form.username" autocomplete="username" />

@@ -1,10 +1,10 @@
-# project-a（正式名称待定）
+# code-nest（码巢）
 
 开发者社区，参考技术派自己写的精简版。技术栈：Java 17 + Spring Boot 3.5 + Vue 3。完整规格见 `docs/SPEC.md`。
 
 ## 开工须知
 
-- **第一次进入本项目**：先通读 `docs/SPEC.md`，再向用户确认 SPEC 第 1 节列出的信息（项目正式名称、GitHub 用户名），然后从 M0 开始。
+- **第一次进入本项目**：先通读 `docs/SPEC.md`。正式名称 `code-nest`、GitHub 用户名 `qq3939` 已确认并完成替换（D-027）。
 - **之后每次进入**：先看 README 和 `git log`，确认做到了哪个里程碑，从中断的地方接着做。
 - **推进方式**：按 SPEC 第 15 节的里程碑顺序推进。每个里程碑达到完成标准后，依次：
   1. 跑测试；
@@ -49,11 +49,11 @@ docker compose up -d --build
 docker compose up -d --build --scale backend=2
 
 # 本机跑后端（先 docker compose up -d mysql redis rabbitmq minio minio-init）
-cd backend && ./mvnw -pl project-a-web -am spring-boot:run -Dspring-boot.run.profiles=dev
+cd backend && ./mvnw -pl code-nest-web -am spring-boot:run -Dspring-boot.run.profiles=dev
 
 # 测试：单元 + 集成（集成测试需要 Docker）；只跑一个集成测试
 cd backend && ./mvnw -B verify
-cd backend && ./mvnw -B -pl project-a-web -am verify -Dit.test=AuthIT -Dtest=none -Dsurefire.failIfNoSpecifiedTests=false
+cd backend && ./mvnw -B -pl code-nest-web -am verify -Dit.test=AuthIT -Dtest=none -Dsurefire.failIfNoSpecifiedTests=false
 
 # 前端开发（Vite 把 /api 代理到 8081）与构建
 cd frontend && npm ci && npm run dev
@@ -61,15 +61,12 @@ cd frontend && npm run build
 
 # 造数（跑完自动退出）→ 带 perf profile 启动后端 → 压测
 cd backend && ./mvnw -B -DskipTests package
-java -jar backend/project-a-web/target/app.jar --spring.profiles.active=dev,datagen
-java -Xmx1g -jar backend/project-a-web/target/app.jar --spring.profiles.active=dev,perf
+java -jar backend/code-nest-web/target/app.jar --spring.profiles.active=dev,datagen
+java -Xmx1g -jar backend/code-nest-web/target/app.jar --spring.profiles.active=dev,perf
 bash perf/prepare.sh && bash perf/run.sh all
-
-# 正式名称确定后替换占位名
-bash scripts/rename-project.sh <项目名> <GitHub 用户名>
 ```
 
-注意：`java -jar` 运行中的 jar 不要被 `mvn package` 覆盖（P-014）；dev profile 从仓库根目录读取 `.env`，所以 `java -jar` 要在 `backend/project-a-web` 或仓库根目录下执行。
+注意：`java -jar` 运行中的 jar 不要被 `mvn package` 覆盖（P-014）；dev profile 从仓库根目录读取 `.env`，所以 `java -jar` 要在 `backend/code-nest-web` 或仓库根目录下执行。
 
 ## 参考
 

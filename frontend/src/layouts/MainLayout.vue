@@ -34,7 +34,7 @@ async function onCommand(cmd: string) {
   <div class="layout">
     <header class="header">
       <div class="pa-container bar">
-        <RouterLink to="/" class="logo">project-a</RouterLink>
+        <RouterLink to="/" class="logo">code-nest</RouterLink>
         <nav class="nav pa-hide-mobile">
           <RouterLink to="/" exact-active-class="active">首页</RouterLink>
           <RouterLink to="/rank" active-class="active">排行榜</RouterLink>

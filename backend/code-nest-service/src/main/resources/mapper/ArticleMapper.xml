@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.qq3939.codenest.service.article.mapper.ArticleMapper">
+
+    <sql id="listColumns">
+        a.id, a.author_id, a.title, a.summary, a.cover_url, a.category_id, a.status, a.publish_time, a.deleted,
+        a.create_time, a.update_time
+    </sql>
+
+    <!-- 走 (status, publish_time) 或 (category_id, status, publish_time) 索引；按标签筛选时先从 article_tag 的 tag_id 索引定位 -->
+    <select id="selectPublishedPage" resultType="io.github.qq3939.codenest.service.article.entity.ArticleDO">
+        SELECT <include refid="listColumns"/>
+        FROM article a
+        <if test="tagId != null">
+            JOIN article_tag t ON t.article_id = a.id AND t.tag_id = #{tagId}
+        </if>
+        WHERE a.status = 'PUBLISHED' AND a.deleted = 0
+        <if test="categoryId != null">AND a.category_id = #{categoryId}</if>
+        ORDER BY a.publish_time DESC, a.id DESC
+    </select>
+
+    <select id="selectCollectedPage" resultType="io.github.qq3939.codenest.service.article.entity.ArticleDO">
+        SELECT <include refid="listColumns"/>
+        FROM collect_record c
+                 JOIN article a ON a.id = c.article_id
+        WHERE c.user_id = #{userId} AND c.status = 1
+          AND a.status = 'PUBLISHED' AND a.deleted = 0
+        ORDER BY c.update_time DESC
+    </select>
+
+    <select id="selectFeedSeed" resultType="io.github.qq3939.codenest.service.article.ArticleRef">
+        SELECT a.id, a.author_id, a.publish_time
+        FROM follow f
+                 JOIN article a ON a.author_id = f.followee_id
+        WHERE f.follower_id = #{userId} AND f.status = 1
+          AND a.status = 'PUBLISHED' AND a.deleted = 0
+        <if test="excludeAuthorIds != null and excludeAuthorIds.size() > 0">
+            AND f.followee_id NOT IN
+            <foreach collection="excludeAuthorIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+        </if>
+        ORDER BY a.publish_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectRecentByAuthor" resultType="io.github.qq3939.codenest.service.article.ArticleRef">
+        SELECT id, author_id, publish_time
+        FROM article
+        WHERE author_id = #{authorId} AND status = 'PUBLISHED' AND deleted = 0
+        ORDER BY publish_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectPublishedSince" resultType="io.github.qq3939.codenest.service.article.ArticleRef">
+        SELECT id, author_id, publish_time
+        FROM article
+        WHERE status = 'PUBLISHED' AND deleted = 0 AND publish_time &gt;= #{since}
+    </select>
+
+    <select id="selectPublishedAfterId" resultType="io.github.qq3939.codenest.service.article.entity.ArticleDO">
+        SELECT <include refid="listColumns"/>
+        FROM article a
+        WHERE a.id &gt; #{afterId} AND a.status = 'PUBLISHED' AND a.deleted = 0
+        ORDER BY a.id
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectIdsAfter" resultType="java.lang.Long">
+        SELECT id FROM article WHERE id &gt; #{afterId} AND deleted = 0 ORDER BY id LIMIT #{limit}
+    </select>
+
+    <select id="searchByLike" resultType="io.github.qq3939.codenest.service.article.entity.ArticleDO">
+        SELECT <include refid="listColumns"/>
+        FROM article a
+        WHERE a.status = 'PUBLISHED' AND a.deleted = 0
+          AND (a.title LIKE CONCAT('%', #{keyword}, '%') OR a.summary LIKE CONCAT('%', #{keyword}, '%'))
+        ORDER BY a.publish_time DESC
+    </select>
+</mapper>

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 准备压测数据（先跑过造数：--spring.profiles.active=dev,datagen）。
 # 后端要带 perf profile 启动（放宽登录限流），例如：
-#   cd backend/project-a-web && java -jar target/app.jar --spring.profiles.active=dev,perf
+#   cd backend/code-nest-web && java -jar target/app.jar --spring.profiles.active=dev,perf
 # 用法：在项目根目录执行 bash perf/prepare.sh
 # 生成 perf/data/ 下的 CSV 和 meta.env，供 run.sh 使用。
 set -euo pipefail

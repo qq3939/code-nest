@@ -22,7 +22,7 @@ const menus = [
 <template>
   <el-container class="admin">
     <el-aside width="200px" class="aside">
-      <div class="brand">project-a 管理端</div>
+      <div class="brand">code-nest 管理端</div>
       <el-menu :default-active="String(route.name)" @select="(n: string) => router.push({ name: n })">
         <el-menu-item v-for="m in menus" :key="m.name" :index="m.name">
           <el-icon><component :is="m.icon" /></el-icon>

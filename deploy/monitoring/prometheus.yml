@@ -2,7 +2,7 @@ global:
   scrape_interval: 10s
 
 scrape_configs:
-  - job_name: project-a-backend
+  - job_name: code-nest-backend
     metrics_path: /actuator/prometheus
     # 用 Docker 的服务发现会更通用；这里写死服务名，单实例和 --scale 时 DNS 都能解析到
     dns_sd_configs:

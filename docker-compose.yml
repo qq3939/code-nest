@@ -2,7 +2,7 @@
 # 带搜索：  docker compose --profile search up -d   （并把 .env 里的 SEARCH_ENABLED 改成 true）
 # 带监控：  docker compose --profile monitoring up -d
 # 双实例：  docker compose up -d --scale backend=2  （然后 docker compose restart frontend，让 Nginx 重新解析两个实例）
-name: project-a
+name: code-nest
 
 services:
   mysql:
@@ -88,7 +88,7 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-      MINIO_BUCKET: ${MINIO_BUCKET:-project-a}
+      MINIO_BUCKET: ${MINIO_BUCKET:-code-nest}
     volumes:
       - ./deploy/minio:/init:ro
     restart: "no"

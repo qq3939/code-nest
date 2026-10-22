@@ -1,6 +1,6 @@
 # 项目 A 执行文档（SPEC）
 
-> 项目名暂用占位名 `project-a`。正式名称在 M0 开工时向用户确认，下文用 `xxx` 指代。
+> 项目最初用占位名 `project-a`，正式名称已定为 `code-nest`（码巢）。下文的 `xxx` 指代它。
 > 本文的读者是在本文件夹里开工的 Claude Code 会话，下称"执行者"。
 
 ## 0. 执行者须知
@@ -131,7 +131,7 @@ backend ──> MySQL          业务数据、本地消息表、死信记录
 ### 5.2 工程结构（`xxx` 替换为项目名）
 
 ```
-project-a/
+code-nest/
 ├── backend/
 │   ├── pom.xml              # 父 POM，统一管理依赖版本
 │   ├── xxx-api/             # DTO、VO、枚举、错误码、事件消息体

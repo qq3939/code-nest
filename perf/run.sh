@@ -18,7 +18,7 @@ DURATION="${DURATION:-30}"
 # Docker Desktop（Windows/macOS）和 Linux 都能用 host.docker.internal 访问宿主机（Linux 需要 --add-host，下面已经加了）
 JM_HOST="${JM_HOST:-host.docker.internal}"
 PORT="${BASE##*:}"
-PREFIX="${REDIS_PREFIX:-project-a:}"
+PREFIX="${REDIS_PREFIX:-code-nest:}"
 
 env_get() { grep -E "^$1=" "$ROOT/.env" | head -1 | cut -d= -f2-; }
 compose() { docker compose -f "$ROOT/docker-compose.yml" "$@"; }
