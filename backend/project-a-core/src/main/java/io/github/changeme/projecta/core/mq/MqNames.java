@@ -19,9 +19,6 @@ public class MqNames {
     public static final String RANK_QUEUE = "rank.queue";
     public static final String CACHE_RETRY_QUEUE = "cache.retry.queue";
 
-    /** 重试次数和各级延迟：1 秒、5 秒、30 秒，第 3 次重试仍失败就进死信。 */
-    public static final long[] RETRY_DELAYS_MS = {1_000, 5_000, 30_000};
-
     public static final String HEADER_RETRY = "x-app-retry";
     public static final String HEADER_ERROR = "x-app-error";
     public static final String HEADER_ORIGIN_QUEUE = "x-app-origin-queue";
@@ -40,8 +37,11 @@ public class MqNames {
     private final String eventExchange;
     private final String retryExchange;
     private final String dlxExchange;
+    /** 各级重试的延迟（毫秒），默认 1 秒、5 秒、30 秒；最后一级重试仍失败就进死信。 */
+    private final long[] retryDelaysMs;
 
     public MqNames(AppProperties props) {
+        this.retryDelaysMs = props.getMq().getRetryDelays().stream().mapToLong(d -> d.toMillis()).toArray();
         this.eventExchange = props.getName() + ".event";
         this.retryExchange = props.getName() + ".retry";
         this.dlxExchange = props.getName() + ".dlx";
@@ -57,6 +57,10 @@ public class MqNames {
 
     public String dlxExchange() {
         return dlxExchange;
+    }
+
+    public long[] retryDelaysMs() {
+        return retryDelaysMs.clone();
     }
 
     public static String retryQueue(String queue, int attempt) {

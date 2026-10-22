@@ -129,7 +129,7 @@ public class CacheService {
                 return NULL_MARKER.equals(json) ? null : fromJson(json, type);
             }
             // 未命中：抢重建锁，抢到的去查库并回填，没抢到的稍等再读缓存——保证同一时刻只有一个请求打到数据库
-            String lockKey = key.replace(keys.prefix() + "cache:", keys.prefix() + "lock:cache:");
+            String lockKey = lockKeyOf(key);
             String token = UUID.randomUUID().toString();
             Boolean locked = redis.opsForValue().setIfAbsent(lockKey, token, props.getCache().getRebuildLockTtl());
             if (Boolean.TRUE.equals(locked)) {
@@ -261,6 +261,12 @@ public class CacheService {
     public void deleteForRetry(List<String> cacheKeys) {
         redis.delete(cacheKeys);
         cacheKeys.forEach(k -> redis.convertAndSend(keys.channelCacheInvalidate(), k));
+    }
+
+    /** 锁 key 必须和数据 key 不同：project-a:cache:x -> project-a:lock:cache:x（任意 key 都适用，不依赖 cache: 前缀）。 */
+    private String lockKeyOf(String key) {
+        String prefix = keys.prefix();
+        return prefix + "lock:" + (key.startsWith(prefix) ? key.substring(prefix.length()) : key);
     }
 
     public void invalidateLocal(String key) {

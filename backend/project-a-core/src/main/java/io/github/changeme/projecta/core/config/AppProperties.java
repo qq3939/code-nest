@@ -8,6 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,6 +34,7 @@ public class AppProperties {
     private Upload upload = new Upload();
     private Minio minio = new Minio();
     private DevTools devTools = new DevTools();
+    private Mq mq = new Mq();
     /** 限流规则覆盖：key 是 @RateLimit 的 name，没配的用注解上的默认值。 */
     private Map<String, RateLimitRule> rateLimit = new LinkedHashMap<>();
 
@@ -133,6 +135,12 @@ public class AppProperties {
     public static class DevTools {
         /** 运行时切换策略的接口，只在本地实验环境打开，见 D-016。 */
         private boolean enabled = false;
+    }
+
+    @Data
+    public static class Mq {
+        /** 各级重试队列的延迟，默认 1 秒、5 秒、30 秒；集成测试里调短，免得一个用例等半分钟。 */
+        private List<Duration> retryDelays = List.of(Duration.ofSeconds(1), Duration.ofSeconds(5), Duration.ofSeconds(30));
     }
 
     @Data

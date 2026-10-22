@@ -47,10 +47,11 @@ public class RabbitTopologyConfig {
             // 重试队列过期后经 retry 交换机、以队列名为路由键回到原队列
             list.add(BindingBuilder.bind(queue).to(retry).with(queueName));
 
-            for (int i = 0; i < MqNames.RETRY_DELAYS_MS.length; i++) {
+            long[] delays = names.retryDelaysMs();
+            for (int i = 0; i < delays.length; i++) {
                 String retryName = MqNames.retryQueue(queueName, i + 1);
                 Queue retryQueue = QueueBuilder.durable(retryName)
-                        .ttl((int) MqNames.RETRY_DELAYS_MS[i])
+                        .ttl((int) delays[i])
                         .deadLetterExchange(names.retryExchange())
                         .deadLetterRoutingKey(queueName)
                         .build();

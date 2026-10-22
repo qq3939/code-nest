@@ -57,7 +57,7 @@ public class ConsumerSupport {
         MessageProperties props = original.getMessageProperties();
         props.setHeader(MqNames.HEADER_RETRY, retried + 1);
         props.setHeader(MqNames.HEADER_ORIGIN_QUEUE, queue);
-        if (retried < MqNames.RETRY_DELAYS_MS.length) {
+        if (retried < names.retryDelaysMs().length) {
             rabbitTemplate.send(names.retryExchange(), MqNames.retryQueue(queue, retried + 1), original);
         } else {
             props.setHeader(MqNames.HEADER_ERROR, abbreviate(error));
