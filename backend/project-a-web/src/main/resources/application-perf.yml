@@ -1,0 +1,19 @@
+# 压测 profile：和 dev 或 docker 一起用（--spring.profiles.active=dev,perf）。
+# 准备压测数据时要登录几百个造数用户，默认的登录限流（每分钟 10 次）会挡住，这里放宽；
+# 发文限流（每分钟 3 篇）会让场景 4 连续发文时被 429 中断，也放宽；
+# 点赞限流保持默认（每秒 5 次），场景 5 正是要测它。
+app:
+  rate-limit:
+    login: { window: 1m, limit: 1000000 }
+    register: { window: 1m, limit: 1000000 }
+    search: { window: 1s, limit: 1000000 }
+    publish: { window: 1m, limit: 1000000 }
+logging:
+  level:
+    # dev 下 MyBatis 打印 SQL，压测时会严重拖慢接口并刷爆日志
+    io.github.changeme.projecta: INFO
+---
+# 压测要跑几十分钟，令牌有效期放长，避免中途 401
+app:
+  jwt:
+    access-ttl: 12h

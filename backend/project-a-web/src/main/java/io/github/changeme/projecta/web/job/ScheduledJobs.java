@@ -14,6 +14,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -50,22 +51,22 @@ public class ScheduledJobs {
 
     @Scheduled(initialDelay = 30_000, fixedDelay = 600_000)
     public void refreshHotArticles() {
-        jobLock.runExclusively("hot-score", () -> log.info("hot articles refreshed: {}", rankService.refreshHotArticles()));
+        jobLock.runExclusively("hot-score", Duration.ofMinutes(5), () -> log.info("hot articles refreshed: {}", rankService.refreshHotArticles()));
     }
 
     @Scheduled(cron = "0 5 0 * * *", zone = "Asia/Shanghai")
     public void archiveRank() {
-        jobLock.runExclusively("rank-archive", () -> rankService.archive(LocalDate.now().minusDays(1)));
+        jobLock.runExclusively("rank-archive", Duration.ofHours(1), () -> rankService.archive(LocalDate.now().minusDays(1)));
     }
 
     @Scheduled(cron = "0 10 0 * * *", zone = "Asia/Shanghai")
     public void archiveDailyStat() {
-        jobLock.runExclusively("daily-stat", () -> statService.archiveDay(LocalDate.now().minusDays(1)));
+        jobLock.runExclusively("daily-stat", Duration.ofHours(1), () -> statService.archiveDay(LocalDate.now().minusDays(1)));
     }
 
     @Scheduled(cron = "0 0 3 * * *", zone = "Asia/Shanghai")
     public void reconcileCounts() {
-        jobLock.runExclusively("count-reconcile", this::reconcileAll);
+        jobLock.runExclusively("count-reconcile", Duration.ofHours(1), this::reconcileAll);
     }
 
     /** 按 ID 游标遍历全部文章，每批 500 篇对账。 */

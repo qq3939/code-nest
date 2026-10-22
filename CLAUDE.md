@@ -42,7 +42,34 @@
 
 ## 常用命令
 
-项目搭起来后在这里补充：启动、测试、前端开发、压测。
+```bash
+# 全部启动（首次加 --build）；带搜索加 --profile search，带监控加 --profile monitoring
+docker compose up -d --build
+# 双实例演示（之后 docker compose restart frontend）
+docker compose up -d --build --scale backend=2
+
+# 本机跑后端（先 docker compose up -d mysql redis rabbitmq minio minio-init）
+cd backend && ./mvnw -pl project-a-web -am spring-boot:run -Dspring-boot.run.profiles=dev
+
+# 测试：单元 + 集成（集成测试需要 Docker）；只跑一个集成测试
+cd backend && ./mvnw -B verify
+cd backend && ./mvnw -B -pl project-a-web -am verify -Dit.test=AuthIT -Dtest=none -Dsurefire.failIfNoSpecifiedTests=false
+
+# 前端开发（Vite 把 /api 代理到 8081）与构建
+cd frontend && npm ci && npm run dev
+cd frontend && npm run build
+
+# 造数（跑完自动退出）→ 带 perf profile 启动后端 → 压测
+cd backend && ./mvnw -B -DskipTests package
+java -jar backend/project-a-web/target/app.jar --spring.profiles.active=dev,datagen
+java -Xmx1g -jar backend/project-a-web/target/app.jar --spring.profiles.active=dev,perf
+bash perf/prepare.sh && bash perf/run.sh all
+
+# 正式名称确定后替换占位名
+bash scripts/rename-project.sh <项目名> <GitHub 用户名>
+```
+
+注意：`java -jar` 运行中的 jar 不要被 `mvn package` 覆盖（P-014）；dev profile 从仓库根目录读取 `.env`，所以 `java -jar` 要在 `backend/project-a-web` 或仓库根目录下执行。
 
 ## 参考
 

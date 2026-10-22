@@ -117,7 +117,7 @@ services:
       context: ./backend
     env_file: .env
     environment:
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
       TZ: Asia/Shanghai
       JAVA_OPTS: -Xms256m -Xmx768m
     # 端口范围：--scale backend=2 时两个实例分别占用 8081、8082

@@ -1,0 +1,19 @@
+# 造数 profile：和 dev 一起用（--spring.profiles.active=dev,datagen），跑完自动退出。
+# 不启动 Web 服务器，避免和正在运行的后端抢 8081 端口；也不跑定时任务，避免造数中途触发写回、对账。
+spring:
+  main:
+    web-application-type: none
+app:
+  jobs:
+    enabled: false
+  # 规模（SPEC 14.1），可在命令行覆盖，例如 --app.datagen.users=2000
+  datagen:
+    users: 10000
+    articles: 50000
+    follows: 300000
+    big-v: 4
+    big-v-followers: 6000
+    likes: 300000
+    collects: 60000
+    comments: 100000
+    password: password-123
