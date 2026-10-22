@@ -1,0 +1,81 @@
+:root {
+  --pa-bg: #f4f5f7;
+  --pa-card: #ffffff;
+  --pa-text: #1f2329;
+  --pa-text-2: #646a73;
+  --pa-text-3: #8f959e;
+  --pa-border: #e4e6eb;
+  --pa-primary: var(--el-color-primary);
+  --pa-radius: 8px;
+  --pa-width: 1140px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--pa-bg);
+  color: var(--pa-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.pa-container {
+  max-width: var(--pa-width);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.pa-card {
+  background: var(--pa-card);
+  border-radius: var(--pa-radius);
+  border: 1px solid var(--pa-border);
+}
+
+.pa-muted {
+  color: var(--pa-text-3);
+  font-size: 13px;
+}
+
+.pa-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 搜索高亮：后端返回 <em> 包裹的关键词 */
+.pa-highlight em {
+  color: var(--el-color-danger);
+  font-style: normal;
+}
+
+.pa-page {
+  padding: 16px 0 40px;
+}
+
+.pa-two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .pa-two-col {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pa-hide-mobile {
+    display: none !important;
+  }
+}

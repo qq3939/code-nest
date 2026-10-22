@@ -1,5 +1,6 @@
 package io.github.changeme.projecta.web.controller;
 
+import io.github.changeme.projecta.api.enums.UserRole;
 import io.github.changeme.projecta.core.ratelimit.Dim;
 import io.github.changeme.projecta.core.ratelimit.RateLimit;
 import io.github.changeme.projecta.core.result.Result;
@@ -26,7 +27,9 @@ public class CommentController {
     @Operation(summary = "删除自己的评论（一级评论连同回复一起删除）")
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
-        commentService.delete(UserContext.requireUserId(), id, false);
+        // 管理员可以删除任何评论（内容治理），普通用户只能删自己的
+        boolean asAdmin = UserContext.current() != null && UserContext.current().role() == UserRole.ADMIN;
+        commentService.delete(UserContext.requireUserId(), id, asAdmin);
         return Result.ok();
     }
 
