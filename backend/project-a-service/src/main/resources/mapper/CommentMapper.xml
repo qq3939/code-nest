@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.changeme.projecta.service.interaction.mapper.CommentMapper">
+
+    <select id="countReplies" resultType="io.github.changeme.projecta.service.count.IdCount">
+        SELECT parent_id AS id, COUNT(*) AS cnt
+        FROM comment
+        WHERE deleted = 0 AND parent_id IN
+        <foreach collection="parentIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+        GROUP BY parent_id
+    </select>
+
+    <select id="selectFirstReplies" resultType="io.github.changeme.projecta.service.interaction.entity.CommentDO">
+        SELECT id, article_id, user_id, parent_id, reply_to_user_id, content, like_count, deleted, create_time, update_time
+        FROM (SELECT c.*, ROW_NUMBER() OVER (PARTITION BY parent_id ORDER BY create_time, id) AS rn
+              FROM comment c
+              WHERE c.deleted = 0 AND c.parent_id IN
+              <foreach collection="parentIds" item="id" open="(" separator="," close=")">#{id}</foreach>
+             ) t
+        WHERE t.rn &lt;= #{n}
+        ORDER BY parent_id, create_time, id
+    </select>
+</mapper>

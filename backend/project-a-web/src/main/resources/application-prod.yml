@@ -1,0 +1,9 @@
+# prod：示意用，实验开关必须关闭。
+app:
+  dev-tools:
+    enabled: false
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

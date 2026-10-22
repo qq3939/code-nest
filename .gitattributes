@@ -1,0 +1,9 @@
+# 统一用 LF 换行：Windows 上 git 默认 CRLF，shell 脚本和 mvnw 带 CRLF 会在容器里报 "bad interpreter"
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.jar binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.webp binary

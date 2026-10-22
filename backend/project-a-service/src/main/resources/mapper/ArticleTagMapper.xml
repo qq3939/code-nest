@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="io.github.changeme.projecta.service.article.mapper.ArticleTagMapper">
+
+    <insert id="insertBatchIgnore">
+        INSERT IGNORE INTO article_tag (article_id, tag_id) VALUES
+        <foreach collection="tagIds" item="tagId" separator=",">(#{articleId}, #{tagId})</foreach>
+    </insert>
+
+    <update id="moveTag">
+        UPDATE IGNORE article_tag SET tag_id = #{targetId} WHERE tag_id = #{sourceId}
+    </update>
+</mapper>

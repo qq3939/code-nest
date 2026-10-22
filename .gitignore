@@ -1,0 +1,25 @@
+# 构建产物
+target/
+node_modules/
+dist/
+*.class
+
+# 密钥
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# 日志
+*.log
+logs/
+
+# 压测结果里的大文件（报告摘要另存于 docs/perf-report.md）
+perf/results/**/*.jtl
+perf/results/**/html/
+perf/results/**/*.csv

@@ -1,0 +1,141 @@
+# 公共配置。按环境区分的部分在 application-<profile>.yml；密钥一律来自环境变量（.env）。
+server:
+  port: 8081
+  shutdown: graceful
+  # 压缩 JSON；Nginx 也会压缩，这里是给本机直连 8081 的场景
+  compression:
+    enabled: true
+    mime-types: application/json
+
+spring:
+  application:
+    name: project-a
+  profiles:
+    active: dev
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:project_a}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${MYSQL_USER:project_a}
+    password: ${MYSQL_PASSWORD:}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 3000
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2s
+      lettuce:
+        pool:
+          enabled: false
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    # 发送端确认：correlated 模式下每条消息带 CorrelationData，Broker 确认后回调，见 OutboxPublisher
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    template:
+      mandatory: true
+    listener:
+      simple:
+        acknowledge-mode: manual
+        prefetch: 20
+        concurrency: 2
+        max-concurrency: 8
+        default-requeue-rejected: false
+  elasticsearch:
+    uris: ${ES_URIS:http://localhost:9200}
+    connection-timeout: 2s
+    socket-timeout: 10s
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jackson:
+    time-zone: Asia/Shanghai
+    default-property-inclusion: always
+  mvc:
+    async:
+      # SSE 连接的超时由 SseEmitter 自己控制
+      request-timeout: -1
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+    db-config:
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    elasticsearch:
+      enabled: ${SEARCH_ENABLED:false}
+  metrics:
+    tags:
+      application: project-a
+
+logging:
+  pattern:
+    level: "%5p [%X{traceId:-}]"
+  level:
+    io.github.changeme.projecta: info
+
+app:
+  name: project-a
+  jwt:
+    secret: ${JWT_SECRET:}
+    access-ttl: 30m
+    refresh-ttl: 7d
+  admin:
+    username: ${ADMIN_USERNAME:}
+    password: ${ADMIN_PASSWORD:}
+  # 三个可切换策略的默认值：redis-batch、hybrid、two-level（naive/pull/none 只作对照组）
+  count:
+    strategy: redis-batch
+    flush-interval: 10s
+  feed:
+    mode: hybrid
+    big-v-threshold: 5000
+  cache:
+    mode: two-level
+  search:
+    enabled: ${SEARCH_ENABLED:false}
+  minio:
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    access-key: ${MINIO_ROOT_USER:}
+    secret-key: ${MINIO_ROOT_PASSWORD:}
+    bucket: ${MINIO_BUCKET:project-a}
+  # 限流规则，可覆盖 @RateLimit 上的默认值（SPEC 9.6）
+  rate-limit:
+    login: { window: 1m, limit: 10 }
+    register: { window: 1m, limit: 10 }
+    like: { window: 1s, limit: 5 }
+    collect: { window: 1s, limit: 5 }
+    comment: { window: 1m, limit: 10 }
+    publish: { window: 1m, limit: 3 }
+    search: { window: 1s, limit: 10 }

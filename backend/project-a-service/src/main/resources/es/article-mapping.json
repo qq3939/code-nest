@@ -1,0 +1,13 @@
+{
+  "properties": {
+    "id":          { "type": "long" },
+    "title":       { "type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart" },
+    "summary":     { "type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart" },
+    "content":     { "type": "text", "analyzer": "ik_max_word", "search_analyzer": "ik_smart" },
+    "tags":        { "type": "keyword" },
+    "authorId":    { "type": "long" },
+    "authorName":  { "type": "keyword" },
+    "publishTime": { "type": "date", "format": "uuuu-MM-dd'T'HH:mm:ss.SSS||uuuu-MM-dd'T'HH:mm:ss||epoch_millis" },
+    "status":      { "type": "keyword" }
+  }
+}
