@@ -47,7 +47,7 @@
 ### 阶段 0：环境与收尾（2026-10-24 至 11-01）
 
 - [ ] **A0-1（用户）安装 Docker Desktop**：WSL2 后端，Settings → Resources 至少分 6 GB，开 ES 时分 8 GB。其他任务大多依赖这一项。
-- [ ] **A0-2（AI，需用户同意推送）推送改名提交**：本地 main 比 `origin/main` 多一个提交 `24416f9`（改名为 code-nest）。
+- [x] **A0-2（AI，需用户同意推送）推送改名提交**：本地 main 比 `origin/main` 多一个提交 `24416f9`（改名为 code-nest）。2026-10-23 已推送。
 - [ ] **A0-3（AI）修复 `docs/pitfalls.md` 里失效的提交号**。这些是历史改写前的旧提交，按提交信息对应到现在 main 上的提交：
 
   | 旧提交 | 新提交 | 用到的条目 |
@@ -66,7 +66,7 @@
   - `cd frontend && npm ci && npm run build`；
   - 跑的过程中遇到的 Windows 特有的问题记进 `pitfalls.md`，README 的"Windows 注意事项"同步更新。
 - [ ] **A0-6（AI）ES 在本机跑通**：`SEARCH_ENABLED=true`，`docker compose --profile search up -d --build`；验证 IK 分词、搜索、高亮，以及关掉 ES 后的降级。IK 插件下载不了时按 P-006 的办法本地安装。
-- [ ] **A0-7（用户决定）** GitHub 仓库要不要从 `project-a` 改名为 `code-nest`；本地的 `backup/first-commit` 分支要不要删。
+- [ ] **A0-7（用户决定）** 本地的 `backup/first-commit` 分支要不要删。GitHub 仓库已改名为 https://github.com/qq3939/code-nest ，旧地址 `qq3939/project-a` 会自动重定向。
 
 ### 阶段 1：读懂项目 + 本机数据（2026-11-02 至 2027-01-10）
 
