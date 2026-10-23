@@ -37,7 +37,7 @@
 - **完成度**：规划的功能（[docs/SPEC.md](docs/SPEC.md)）已全部实现，GitHub Actions 上的单元测试、集成测试和前端构建都能通过。还没有在 Windows 本机上跑过完整测试。
 - **代码来源**：代码主要由 AI（Claude）生成；需求拆解、方案取舍由作者决定，作者按 [docs/learn/](docs/learn/README.md) 逐个模块读懂代码。
 - **压测数据**：[docs/perf-report.md](docs/perf-report.md) 里的数据是 2026-10-22 在云端容器（4 核 Intel Xeon @ 2.80GHz，15 GB 内存）里跑的，JMeter、后端和中间件在同一台机器上，只能用来比较同一场景下不同实现的差异。之后会在作者的电脑（Windows 11，Intel Core Ultra 5 125H，16 GB 内存）上重跑，并替换报告正文。
-- **ES 搜索**：代码已经写完（IK 分词，标题、摘要、正文高亮，ES 出错时降级为 MySQL `LIKE`），但 Elasticsearch 还没有真正跑起来过：开发环境下载不了 IK 插件（见 [P-006](docs/pitfalls.md)）。和搜索有关的测试只有 `HighlightTest`，测的是降级路径里的关键词高亮；ES 那一侧没有测试，集成测试和压测也都没有覆盖搜索。默认 `SEARCH_ENABLED=false`，搜索走 MySQL 降级路径。
+- **ES 搜索**：2026-10-23 第一次在作者电脑上跑通（ES 8.19.5 + IK）。手动验证过：IK 分词、发布后增量写入索引、死信重放、全量重建、标题/摘要/正文高亮、停掉 ES 后降级为 MySQL `LIKE`、ES 恢复后自动切回。跑通的过程中修了两个 bug：索引其实一直写不进去（[P-022](docs/pitfalls.md)），ES 的高亮片段没有转义 HTML（[P-024](docs/pitfalls.md)）。自动化测试只有 `HighlightTest`（降级路径的高亮）和 `ArticleDocMappingTest`（写进 ES 的字段格式）；集成测试不启动 ES，搜索也还没有压测。默认 `SEARCH_ENABLED=false`，搜索走 MySQL 降级路径。
 - **演示视频**：还没有录，录好后把链接放在这里。
 
 ## 功能
@@ -263,15 +263,17 @@ docker compose ps             # 等所有服务变成 healthy
 |---|---|
 | http://localhost:8080 | 前端 |
 | http://localhost:8080/admin | 管理端（账号密码是 `.env` 里的 `ADMIN_USERNAME` / `ADMIN_PASSWORD`） |
-| http://localhost:8081/swagger-ui.html | 接口文档 |
-| http://localhost:8081/api/health | 健康检查（含各中间件状态） |
+| http://localhost:8081/swagger-ui.html | 接口文档（经 Nginx 也能打开：http://localhost:8080/swagger-ui.html） |
+| http://localhost:8081/api/health | 健康检查（含各中间件状态；`search` 只表示开关是否打开，不探测 ES 是否可达） |
 | http://localhost:15672 | RabbitMQ 管理台 |
 | http://localhost:9001 | MinIO 控制台 |
+
+后端的端口映射是 `8081-8082:8081`（给双实例演示准备的），单实例时容器重建后也可能被分到 8082，用 `docker compose port backend 8081` 查看；经 8080 访问不受影响（见 [P-023](docs/pitfalls.md)）。
 
 可选组件：
 
 ```bash
-# 全文搜索：先把 .env 里的 SEARCH_ENABLED 改成 true
+# 全文搜索：先把 .env 里的 SEARCH_ENABLED 改成 true；已有的文章到管理端"实验开关"页点"重建索引"
 docker compose --profile search up -d --build
 # 监控：Prometheus :9090，Grafana :3000
 docker compose --profile monitoring up -d
@@ -334,7 +336,7 @@ bash perf/run.sh all      # 或 1 / 2 / 3 / 4 / 5 单独跑；RUNS、THREADS、D
 
 ```bash
 docker compose up -d --build --scale backend=2
-docker compose restart frontend     # 让 Nginx 重新解析到两个后端实例
+# 不用重启 frontend：Nginx 每 10 秒重新解析一次 backend，约 10 秒后开始轮询两个实例（P-023）
 docker compose logs -f backend      # 观察请求落在哪个实例
 ```
 
@@ -361,6 +363,7 @@ docker compose logs -f backend      # 观察请求落在哪个实例
 - **端口占用**：启动前检查 8080、8081、3306、6379、5672、15672、9000、9001、9200 是否被占用（`netstat -ano | findstr :3306`）。本机装了 MySQL 服务的话先停掉，或者改 `docker-compose.yml` 里的端口映射。
 - **Maven Wrapper**：Windows 用 `mvnw.cmd`；PowerShell 里 `-D` 参数要加引号。
 - **压测脚本**：`perf/*.sh` 是 Bash 脚本，在 Git Bash 或 WSL 里执行。
+- **curl 发中文**：Windows 版 curl 按 GBK 读取命令行参数，`-d '{"q":"缓存"}'` 或 URL 里的中文到服务端会变成乱码。请求体写进 UTF-8 文件后用 `--data-binary @body.json`，URL 里的中文先做 URL 编码（见 [P-025](docs/pitfalls.md)）。
 
 ## 工程结构
 

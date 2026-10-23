@@ -180,3 +180,36 @@
 - **解决**：只在测试 profile（`application-test.yml`）里把 `spring.datasource.hikari.connection-timeout` 放宽到 30 秒；默认配置的 3 秒不变。修改后三个用例的耗时：atomic-sql 11.0 秒、naive 4.4 秒（丢了 986 次更新）、redis-batch 1.5 秒。
 - **教训**：并发测试的结果不只取决于代码，还取决于磁盘、网络这些环境因素；断言正确性的测试，不要和"多快"的超时绑在一起。这个数字也说明了 redis-batch 的价值：同一行的热点更新，瓶颈在数据库每次提交的刷盘上。另外，在本机重跑压测（A1-2）时，atomic-sql 场景会明显受这一点影响，写报告时要说明。
 - **相关提交**：e4ca1e2（`application-test.yml`）
+
+## P-022 ES 索引一直写不进去：`publishTime` 只写出了日期
+
+- **现象**：第一次在本机开 ES（A0-6），发布了 6 篇文章，`article` 索引里却是 0 篇。后端日志里 `search.queue` 每条消息都报 `failed to parse field [publishTime] of type [date] … Preview of field's value: '2026-10-23'`，重试 3 次后全部进了死信。也就是说，ES 搜索这条链路从写完到现在一次都没真正工作过。
+- **原因**：`ArticleDoc.publishTime` 上写的是 `@Field(type = Date, pattern = "uuuu-MM-dd'T'HH:mm:ss.SSS")`。Spring Data Elasticsearch 的 `format` 有默认值（`date_optional_time`、`epoch_millis`），`pattern` 只是追加在后面，**写入时用的是第一个 format**。`date_optional_time` 的时间部分在可选段里，而且带时区偏移；`LocalDateTime` 没有时区，整段可选内容被跳过，只剩 `2026-10-23`。索引的 mapping 是手写的，只接受带时间的格式，于是整篇文档被拒。
+- **解决**：改成 `@Field(type = Date, format = {}, pattern = "…")`，`format = {}` 让 `pattern` 成为唯一格式。新增单元测试 `ArticleDocMappingTest`，不启动 ES，直接用 Spring Data 的转换器检查写出来的字符串，修复前能稳定复现。已经进死信的 6 条消息用管理端"死信重放"重新投递，1.1 秒内全部写入索引。
+- **教训**：只在"开关打开"时才走的代码路径，没有测试就等于没验证过；README 里"ES 那一侧没有任何测试"这句话，这次正好应验。死信机制兜住了这次故障：消息没丢，修复后重放即可恢复。
+- **相关提交**：a13f794（`ArticleDoc.java`、`ArticleDocMappingTest.java`）
+
+## P-023 后端容器重建后，前端访问 `/api` 一直 502
+
+- **现象**：把 `.env` 里的 `SEARCH_ENABLED` 改成 `true` 后执行 `docker compose --profile search up -d`，后端容器被重建，健康检查是 healthy，但浏览器经 8080 访问 `/api` 全部 502，直到 `docker compose restart frontend` 才恢复。
+- **原因**：`upstream` 里的 `server backend:8081;` 只在 Nginx 启动时解析一次服务名，之后一直用当时拿到的 IP。后端容器一旦被重建（改了 `.env`、重新构建镜像）就换了 IP，Nginx 还在连旧地址。双实例演示要先 `restart frontend` 也是同一个原因。
+- **解决**：Nginx 1.27.3 起，开源版的 `upstream` 也支持 `resolve` 参数：加上 `resolver 127.0.0.11 valid=10s`（Docker 内置 DNS）和 `zone`，`server backend:8081 resolve;` 每 10 秒重新解析一次。验证过三种情况都不用重启 frontend：后端重建后立即可用；`--scale backend=2` 后约 10 秒开始轮询两个实例（40 次请求分成 19 和 20）；缩回 1 个实例后 20 次请求全部 200。
+- **顺带**：后端的端口映射是 `8081-8082:8081`（给双实例演示用），单实例时重建也可能被分到 8082，因为旧容器的 8081 还没释放。这是端口范围的正常行为，不改；用 `docker compose port backend 8081` 查当前端口，或者直接经 8080 访问。
+- **教训**：反向代理里写服务名时，要确认它多久解析一次；容器的 IP 不是固定的。
+- **相关提交**：294e3c5（`deploy/nginx/nginx.conf`）
+
+## P-024 ES 搜索的高亮片段没有转义 HTML
+
+- **现象**：搜索标题为 `<img src=x onerror=alert(1)> 高亮转义测试` 的文章，ES 返回的高亮片段把 `<img …>` 原样带了回来。前端有 DOMPurify 兜底（只放行 `<em>`），脚本不会执行，但尖括号里的内容会被当成标签删掉：标题是"Java 泛型 List<String> 详解"的文章，在搜索结果里会显示成"Java 泛型 List 详解"。
+- **原因**：ES 的高亮默认 `encoder: default`，只在命中的词两边加标签，原文不做转义。而 MySQL 降级路径的 `SearchService.highlight()` 是先转义再插 `<em>`，前端注释也写着"后端已经转义了正文"，两条路径的约定不一致。
+- **解决**：高亮参数加上 `withEncoder("html")`，ES 会先转义原文再插入 `<em>`。修复后接口返回 `&lt;img …&gt; <em>高亮</em>…`，浏览器里标题按原文显示。
+- **教训**：同一个接口有两种实现时，输出约定（这里是"只信任 `<em>`"）要两边都检查；前端兜底只能防住执行脚本，防不住内容被删。
+- **相关提交**：711550c（`SearchService.java`）
+
+## P-025 Git Bash 里用 curl 发中文，服务端收到乱码
+
+- **现象**：在 Git Bash 里执行 `curl localhost:9200/article/_analyze -d '{"analyzer":"ik_smart","text":"Redis缓存击穿"}'`，ES 报 `Invalid UTF-8 start byte 0xbb`。
+- **原因**：Windows 版 curl 按系统代码页（中文系统是 GBK）读取命令行参数，中文被转成了 GBK 字节再发出去；URL 里的中文查询参数也一样。
+- **解决**：把请求体写进 UTF-8 文件，用 `--data-binary @body.json` 发送；URL 里的中文先做 URL 编码；或者改用 Python 发请求。
+- **教训**：Windows 上命令行参数的编码不一定是 UTF-8，带中文的测试请求尽量从文件读。
+- **相关提交**：无代码改动
