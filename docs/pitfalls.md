@@ -172,3 +172,11 @@
 - **解决**：在一个管理员 PowerShell 里依次执行 `winget install --id Microsoft.WSL -e`（装上 WSL 2.7.13）、`wsl --install --no-distribution`（这时已经是真正的 wsl.exe，会开启"虚拟机平台"组件）、`winget install --id Docker.DockerDesktop -e`，然后重启。另外 winget 里 Docker Desktop 的安装参数固定带 `--accept-license`，等于替用户接受 Docker 订阅服务协议；这次用 `--override "install --quiet --backend=wsl-2 --no-windows-containers"` 去掉了它，协议由用户第一次打开 Docker Desktop 时自己同意。
 - **教训**：Windows 上装系统组件先确认要不要管理员权限，把需要提权的步骤放进同一个管理员终端，只确认一次 UAC；用包管理器装软件时，看一下它会不会替你同意许可协议。
 - **相关提交**：无代码改动（README"Windows 注意事项"同步更新）
+
+## P-021 Windows 上 `CountConcurrencyIT` 取数据库连接超时
+
+- **现象**：Windows 本机跑 `mvnw.cmd -B verify`，`CountConcurrencyIT.atomicSqlIsExact` 报 `HikariPool-1 - Connection is not available, request timed out after 3001ms (total=20, active=20, idle=0, waiting=33)`；单独重跑时 `naiveLosesUpdates` 也报同样的错（waiting=216）。CI（Linux）上一直通过。
+- **原因**：测试让 200 个线程各加 5 次，更新的是同一行。atomic-sql 的 `UPDATE … SET c = c + 1` 要拿行锁，1000 次更新只能一条接一条地执行；而 MySQL 8.4 默认每次提交要刷两次盘（`innodb_flush_log_at_trx_commit=1`、`sync_binlog=1`）。在 Docker Desktop 的 WSL2 虚拟磁盘上实测单条自动提交的 UPDATE 约 7.9ms（关掉 binlog 约 3.6ms），1000 次约 8 秒。连接池只有 20 个连接，取连接超时是 3 秒（`application.yml` 里为了快速失败设的），排在后面的线程就超时了。
+- **解决**：只在测试 profile（`application-test.yml`）里把 `spring.datasource.hikari.connection-timeout` 放宽到 30 秒；默认配置的 3 秒不变。修改后三个用例的耗时：atomic-sql 11.0 秒、naive 4.4 秒（丢了 986 次更新）、redis-batch 1.5 秒。
+- **教训**：并发测试的结果不只取决于代码，还取决于磁盘、网络这些环境因素；断言正确性的测试，不要和"多快"的超时绑在一起。这个数字也说明了 redis-batch 的价值：同一行的热点更新，瓶颈在数据库每次提交的刷盘上。另外，在本机重跑压测（A1-2）时，atomic-sql 场景会明显受这一点影响，写报告时要说明。
+- **相关提交**：e4ca1e2（`application-test.yml`）
