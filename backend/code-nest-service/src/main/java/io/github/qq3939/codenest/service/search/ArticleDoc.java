@@ -24,7 +24,9 @@ public class ArticleDoc {
     private List<String> tags;
     private Long authorId;
     private String authorName;
-    @Field(type = FieldType.Date, pattern = "uuuu-MM-dd'T'HH:mm:ss.SSS")
+    // format = {} 不能省：format 默认是 date_optional_time 等，写入时用第一个 format 而不是 pattern，
+    // 它的时间部分带时区，LocalDateTime 没有时区，只会写出 "2026-10-23"，ES 按 mapping 解析失败（P-022）
+    @Field(type = FieldType.Date, format = {}, pattern = "uuuu-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime publishTime;
     private String status;
 }
