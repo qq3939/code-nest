@@ -4,15 +4,9 @@
 
 ## 开工须知
 
-- **第一次进入本项目**：先通读 `docs/SPEC.md`。正式名称 `code-nest`、GitHub 用户名 `qq3939` 已确认并完成替换（D-027）。
-- **之后每次进入**：先看 README 和 `git log`，确认做到了哪个里程碑，从中断的地方接着做。
-- **推进方式**：按 SPEC 第 15 节的里程碑顺序推进。每个里程碑达到完成标准后，依次：
-  1. 跑测试；
-  2. `docker compose up` 验证；
-  3. 更新 README 和学习文档；
-  4. 提交；
-  5. 向用户汇报；
-  6. 继续下一个。
+- **每次进入先读 `docs/ROADMAP.md`**：M0–M6 已全部完成（2026-10-22），现在的工作是让用户读懂项目、在本机补真实数据、准备面试。ROADMAP 记录了当前状态、已定决策和任务清单，从第一个没勾的任务接着做；完成一项就在 ROADMAP 里勾掉并写上提交号。
+- **SPEC 的地位**：`docs/SPEC.md` 仍是功能边界的依据；其中按里程碑推进的部分已经做完，后续以 ROADMAP 为准。正式名称 `code-nest`、GitHub 用户名 `qq3939` 已确认并完成替换（D-027）。
+- **Git**：每项任务单独提交；不改写历史（不 rebase、不 amend 已推送的提交、不 force push）；推送前先确认用户同意。
 - **范围**：不做 SPEC 第 3.2 节列出的功能。要加重要依赖或改动功能边界，先问用户。
 
 ## 关于用户
@@ -25,7 +19,7 @@
 
 ## 环境
 
-- Windows + Docker Desktop（WSL2 后端）、JDK 17（Corretto）、Node.js LTS。
+- Windows + Docker Desktop（WSL2 后端）、JDK 17（Corretto）、Node.js LTS。本机默认的 `java` 是 25，构建前把 `JAVA_HOME` 指向 `C:\Program Files\Amazon Corretto\jdk17.0.18_9`。截至 2026-10-23，Docker Desktop 还没装（见 ROADMAP 的 A0-1）。
 - 端口：
 
   | 服务 | 端口 |
