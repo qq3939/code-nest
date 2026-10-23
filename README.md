@@ -1,6 +1,6 @@
 # code-nest（码巢）
 
-一个面向学习的开发者社区（写文章、点赞评论、关注动态、通知、排行、搜索、管理后台），用 Java 17 + Spring Boot 3.5 + Vue 3 实现。业务设计参考了 [技术派](https://github.com/itwanger/paicoding)（`springboot3&vue3` 分支），代码全部独立编写，没有复制。
+一个面向学习的开发者社区（写文章、点赞评论、关注动态、通知、排行、搜索、管理后台），用 Java 17 + Spring Boot 3.5 + Vue 3 实现。业务设计参考了 [技术派](https://github.com/itwanger/paicoding)（`springboot3&vue3` 分支），没有复制它的代码。
 
 和一般的 CRUD 项目不同，这里有三处设计可以**在运行时切换实现**，并配了并发测试和压测来对比：
 
@@ -16,6 +16,7 @@
 
 ## 目录
 
+- [当前状态](#当前状态)
 - [功能](#功能)
 - [架构](#架构)
 - [数据模型](#数据模型)
@@ -28,6 +29,16 @@
 - [Windows 注意事项](#windows-注意事项)
 - [工程结构](#工程结构)
 - [致谢](#致谢)
+
+## 当前状态
+
+> 更新于 2026-10-23。
+
+- **完成度**：规划的功能（[docs/SPEC.md](docs/SPEC.md)）已全部实现，GitHub Actions 上的单元测试、集成测试和前端构建都能通过。还没有在 Windows 本机上跑过完整测试。
+- **代码来源**：代码主要由 AI（Claude）生成；需求拆解、方案取舍由作者决定，作者按 [docs/learn/](docs/learn/README.md) 逐个模块读懂代码。
+- **压测数据**：[docs/perf-report.md](docs/perf-report.md) 里的数据是 2026-10-22 在云端容器（4 核 Intel Xeon @ 2.80GHz，15 GB 内存）里跑的，JMeter、后端和中间件在同一台机器上，只能用来比较同一场景下不同实现的差异。之后会在作者的电脑（Windows 11，Intel Core Ultra 5 125H，16 GB 内存）上重跑，并替换报告正文。
+- **ES 搜索**：代码已经写完（IK 分词，标题、摘要、正文高亮，ES 出错时降级为 MySQL `LIKE`），但 Elasticsearch 还没有真正跑起来过：开发环境下载不了 IK 插件（见 [P-006](docs/pitfalls.md)）。和搜索有关的测试只有 `HighlightTest`，测的是降级路径里的关键词高亮；ES 那一侧没有测试，集成测试和压测也都没有覆盖搜索。默认 `SEARCH_ENABLED=false`，搜索走 MySQL 降级路径。
+- **演示视频**：还没有录，录好后把链接放在这里。
 
 ## 功能
 
@@ -242,7 +253,7 @@ sequenceDiagram
 只需要 Docker（Windows / macOS 用 Docker Desktop，内存至少分 6 GB）。
 
 ```bash
-git clone <仓库地址> code-nest && cd code-nest
+git clone https://github.com/qq3939/code-nest.git && cd code-nest
 cp .env.example .env          # 按注释修改密码；JWT_SECRET 用 openssl rand -base64 48 生成
 docker compose up -d --build  # 第一次构建镜像需要几分钟
 docker compose ps             # 等所有服务变成 healthy
@@ -375,4 +386,4 @@ code-nest/
 
 ## 致谢
 
-业务功能和页面设计参考了 [技术派 paicoding](https://github.com/itwanger/paicoding)（`springboot3&vue3` 分支）。本项目是为了学习而重新实现的精简版：技术选型、代码和文档均为独立编写，没有复制技术派的代码。
+业务功能和页面设计参考了 [技术派 paicoding](https://github.com/itwanger/paicoding)（`springboot3&vue3` 分支）。本项目是为了学习而重新实现的精简版，没有复制技术派的代码；代码主要由 AI 生成（见[当前状态](#当前状态)）。
