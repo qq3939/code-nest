@@ -250,12 +250,12 @@ sequenceDiagram
 
 ## 快速开始
 
-只需要 Docker（Windows / macOS 用 Docker Desktop，内存至少分 6 GB）。
+只需要 Docker（Windows / macOS 用 Docker Desktop，Docker 可用内存至少 6 GB；Windows 见 [Windows 注意事项](#windows-注意事项)）。
 
 ```bash
 git clone https://github.com/qq3939/code-nest.git && cd code-nest
 cp .env.example .env          # 按注释修改密码；JWT_SECRET 用 openssl rand -base64 48 生成
-docker compose up -d --build  # 第一次构建镜像需要几分钟
+docker compose up -d --build  # 第一次要拉镜像、在容器里下载 Maven 依赖，作者本机（国内网络）约 14 分钟，之后有缓存
 docker compose ps             # 等所有服务变成 healthy
 ```
 
@@ -347,8 +347,9 @@ docker compose logs -f backend      # 观察请求落在哪个实例
 ## Windows 注意事项
 
 - **换行符**：仓库有 `.gitattributes`（`* text=auto eol=lf`），脚本统一用 LF。如果 clone 之前改过 `core.autocrlf`，Shell 脚本出现 `\r: command not found` 时，执行 `git config --global core.autocrlf input` 后重新 clone 一次。
-- **Docker Desktop 内存**：Settings → Resources 里至少分 **6 GB**；开 ES 时建议 8 GB。
-- **ES 的 `vm.max_map_count`**：ES 要求至少 262144。WSL2 后端下执行：
+- **安装 Docker Desktop**：Windows 家庭版只能用 WSL2 后端，要先装 WSL。系统自带的 `wsl.exe` 可能只是个存根，不认 `--no-distribution` 等参数，这时在**管理员**终端里先 `winget install Microsoft.WSL`，再 `wsl --install --no-distribution`（开启"虚拟机平台"组件），然后装 Docker Desktop，重启电脑后再打开（见 [P-020](docs/pitfalls.md)）。
+- **Docker Desktop 内存**：WSL2 后端下 Settings → Resources 里没有内存滑块，Docker 能用的内存由 WSL2 决定，默认是本机内存的一半（16 GB 的电脑约 7.5 GB，`docker info` 里的 Total Memory 可以看到），本项目全部启动够用。想给 ES 多分一些时，在 `%USERPROFILE%\.wslconfig` 的 `[wsl2]` 下写 `memory=10GB`，然后 `wsl --shutdown` 并重启 Docker Desktop。
+- **ES 的 `vm.max_map_count`**：ES 要求至少 262144。Docker Desktop 4.96 的虚拟机里默认已经是 262144（2026-10-23 实测），一般不用设置，可以用 `docker run --rm alpine sysctl vm.max_map_count` 确认。如果比 262144 小，在 PowerShell 里执行：
   ```powershell
   wsl -d docker-desktop sysctl -w vm.max_map_count=262144
   ```

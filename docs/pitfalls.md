@@ -74,6 +74,7 @@
 - **原因**：ES 要求 `vm.max_map_count ≥ 262144`，Docker Desktop 的 WSL2 虚拟机默认是 65530。
 - **解决**：在 PowerShell 里执行 `wsl -d docker-desktop sysctl -w vm.max_map_count=262144`（重启后失效）；永久生效需要在 `%USERPROFILE%\.wslconfig` 里配置 `kernelCommandLine = "sysctl.vm.max_map_count=262144"`，然后 `wsl --shutdown`。另外给 Docker Desktop 分配至少 6GB 内存。
 - **教训**：README 的 Windows 注意事项里写清楚。
+- **补充（2026-10-23 实测）**：在用户本机装的 Docker Desktop 4.96.3 里，`docker run --rm alpine sysctl vm.max_map_count` 默认已经是 262144，不需要手动设置。上面的办法留给旧版本用。
 - **相关提交**：30b1b26（`README.md`）
 
 ## P-009 Spring Data Redis 的 ZSet 范围查询签名对不上
@@ -163,3 +164,11 @@
 - **解决**：`mvnw.cmd -B clean test`，重新编译后 27 个单元测试全部通过。
 - **教训**：Maven 的增量编译只比较时间戳，不校验类文件内容；遇到"源码没问题、类加载报错"的情况，先 `clean` 再判断。CI 每次都是干净环境，所以发现不了这类问题。
 - **相关提交**：无代码改动
+
+## P-020 Windows 家庭版装 WSL：`wsl --install --no-distribution` 只回一句"未安装"
+
+- **现象**：在用户本机（Windows 11 家庭版 26200）装 Docker Desktop 前先装 WSL，执行 `wsl --install --no-distribution`，输出"未安装适用于 Linux 的 Windows 子系统。可通过运行 wsl.exe --install 进行安装"，退出码 1。改用 `winget install Microsoft.WSL` 又报 `0x80073d28`（需要管理员权限）。
+- **原因**：WSL 还没装时，`C:\Windows\System32\wsl.exe` 只是系统自带的存根，不认 `--no-distribution`。WSL 本体是一个 msix 包，要按整机安装，必须用管理员权限；winget 装这类包不会自动弹 UAC。
+- **解决**：在一个管理员 PowerShell 里依次执行 `winget install --id Microsoft.WSL -e`（装上 WSL 2.7.13）、`wsl --install --no-distribution`（这时已经是真正的 wsl.exe，会开启"虚拟机平台"组件）、`winget install --id Docker.DockerDesktop -e`，然后重启。另外 winget 里 Docker Desktop 的安装参数固定带 `--accept-license`，等于替用户接受 Docker 订阅服务协议；这次用 `--override "install --quiet --backend=wsl-2 --no-windows-containers"` 去掉了它，协议由用户第一次打开 Docker Desktop 时自己同意。
+- **教训**：Windows 上装系统组件先确认要不要管理员权限，把需要提权的步骤放进同一个管理员终端，只确认一次 UAC；用包管理器装软件时，看一下它会不会替你同意许可协议。
+- **相关提交**：无代码改动（README"Windows 注意事项"同步更新）

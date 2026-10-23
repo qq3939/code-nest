@@ -1,4 +1,11 @@
 # 集成测试专用配置：中间件由 Testcontainers 启动，连接信息在 IntegrationTestBase 里动态注入
+spring:
+  datasource:
+    hikari:
+      # 默认配置里取连接 3 秒超时是为了快速失败。CountConcurrencyIT 让 200 个线程抢同一行的行锁，
+      # 1000 次更新只能串行；Windows 上 Docker Desktop 的 MySQL 每次提交约 8ms（WSL2 虚拟磁盘刷盘慢），
+      # 总共约 8 秒，排在后面的线程 3 秒内拿不到连接（P-021）。测试验证的是计数准不准，不是取连接快不快。
+      connection-timeout: 30000
 app:
   jwt:
     secret: integration-test-secret-0123456789-abcdefghijklmn
