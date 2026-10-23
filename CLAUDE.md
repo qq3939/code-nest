@@ -19,7 +19,7 @@
 
 ## 环境
 
-- Windows + Docker Desktop（WSL2 后端）、JDK 17（Corretto）、Node.js LTS。本机默认的 `java` 是 25，构建前把 `JAVA_HOME` 指向 `C:\Program Files\Amazon Corretto\jdk17.0.18_9`。截至 2026-10-23，Docker Desktop 还没装（见 ROADMAP 的 A0-1）。
+- Windows + Docker Desktop（WSL2 后端）、JDK 17（Corretto）、Node.js LTS。本机默认的 `java` 是 25，构建前把 `JAVA_HOME` 指向 `C:\Program Files\Amazon Corretto\jdk17.0.18_9`。Docker Desktop 4.96.3 于 2026-10-23 装好（WSL2 后端，Docker 可用内存约 7.5 GiB；Windows 上的坑见 pitfalls P-019 至 P-021）。
 - 端口：
 
   | 服务 | 端口 |

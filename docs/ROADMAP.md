@@ -1,7 +1,7 @@
 # code-nest 现状与后续计划
 
 > 给在任何环境（本机或云端）进入本项目的 Claude 会话读。M0–M6 已经全部完成，现在的工作是把它变成用户自己讲得清、数据可信、能写进简历的项目。
-> 制定于 2026-10-23；最后更新 2026-10-23（A0-3、A0-4 完成，A0-1、A0-5 部分完成）。
+> 制定于 2026-10-23；最后更新 2026-10-23（A0-1、A0-3、A0-4、A0-5 完成）。
 
 ## 0. 进入本项目先读
 
@@ -21,7 +21,7 @@
 
 | 能写进简历的条件 | 状态 |
 |---|---|
-| CI 通过；干净克隆能构建；本机（Windows）能跑测试 | CI 通过；本机单元测试和前端构建已通过；Docker 已安装、待重启，集成测试还没跑 |
+| CI 通过；干净克隆能构建；本机（Windows）能跑测试 | CI 通过；本机 Compose 全部启动，`mvnw.cmd -B verify`（53 个测试）和前端构建都通过（A0-5） |
 | 小步提交，不改写历史；没有临时文件和密钥 | 6 个提交，M0–M5 的后端全在一个提交里（`2b7b149`）；历史改写过一次，不再改；没发现密钥 |
 | README 写实情：当前状态、运行方式、参考来源、架构图 | 都有；"当前状态"里的演示视频链接待补 |
 | 至少 3 条亮点有实测数据 | 5 个场景有数据，但都是 2026-10-22 AI 在云端容器（4 核 Xeon、15 GB）里跑的；ES 搜索没测 |
@@ -46,9 +46,9 @@
 
 ### 阶段 0：环境与收尾（2026-10-24 至 11-01）
 
-- [ ] **A0-1（用户）安装 Docker Desktop**：WSL2 后端，Settings → Resources 至少分 6 GB，开 ES 时分 8 GB。其他任务大多依赖这一项。
-  - 2026-10-23 进度：AI 用 winget 装好了 WSL 2.7.13 和 Docker Desktop 4.96.3（WSL2 后端），"虚拟机平台"组件已开启。还差：重启电脑；首次打开 Docker Desktop，由用户本人同意 Docker 订阅服务协议（安装时特意没有替用户接受）；之后由 AI 验证 `docker run hello-world`、可用内存和 `vm.max_map_count`。
-  - 注意：WSL2 后端下 Docker Desktop 没有内存滑块，内存上限由 `%USERPROFILE%\.wslconfig` 决定，默认是本机内存的一半（约 7.7 GB）。
+- [x] **A0-1（用户）安装 Docker Desktop**：WSL2 后端，Settings → Resources 至少分 6 GB，开 ES 时分 8 GB。其他任务大多依赖这一项。
+  - 2026-10-23 完成：AI 用 winget 装好 WSL 2.7.13 和 Docker Desktop 4.96.3（WSL2 后端），用户重启并本人同意了 Docker 订阅服务协议（安装时特意没有替用户接受）。实测：Docker 29.9.2，18 个逻辑核，可用内存约 7.5 GiB，`vm.max_map_count` 默认已是 262144。安装中的坑见 P-020。
+  - 注意：WSL2 后端下 Docker Desktop 没有内存滑块，上面"Settings → Resources"的说法不适用；内存上限由 `%USERPROFILE%\.wslconfig` 决定，默认是本机内存的一半（约 7.5 GiB）。
 - [x] **A0-2（AI，需用户同意推送）推送改名提交**：本地 main 比 `origin/main` 多一个提交 `24416f9`（改名为 code-nest）。2026-10-23 已推送。
 - [x] **A0-3（AI）修复 `docs/pitfalls.md` 里失效的提交号**（`f2dffe2`；P-008、P-015、P-017、P-018 里的"README"/"本次提交"也一并改成 `30b1b26`，全仓库再没有失效提交号）。这些是历史改写前的旧提交，按提交信息对应到现在 main 上的提交：
 
@@ -62,12 +62,12 @@
 - [x] **A0-4（AI）README 补实情**（`2f06e5b`；视频链接留到 A1-4 录好后补）：
   - `README.md:245` 的 `git clone <仓库地址>` 换成真实地址；
   - 新增"当前状态"一节，写明：代码主要由 AI 生成；压测在什么环境跑的；ES 搜索验证到了哪一步；演示视频的链接（录好之后再补）。
-- [ ] **A0-5（AI，用户在旁看结果）在 Windows 本机跑通**：
+- [x] **A0-5（AI，用户在旁看结果）在 Windows 本机跑通**（`e4ca1e2`、`8e9ceab`）：
   - `docker compose up -d --build`，所有服务 healthy，浏览器能打开前端；
   - `JAVA_HOME` 指向 JDK 17 后跑 `mvnw.cmd -B verify`，全部通过；
   - `cd frontend && npm ci && npm run build`；
   - 跑的过程中遇到的 Windows 特有的问题记进 `pitfalls.md`，README 的"Windows 注意事项"同步更新。
-  - 2026-10-23 进度：不依赖 Docker 的部分已通过——JDK 17 下 `mvnw.cmd -B clean test`（27 个单元测试，先遇到 P-019），`npm ci && npm run build`。集成测试和 Compose 等 Docker 装好再跑。
+  - 2026-10-23 完成：`docker compose up -d --build` 首次约 14 分钟（容器里下载 Maven 依赖占了 10 分钟），所有服务 healthy，`/api/health` 全部 UP，浏览器能打开前端、控制台无报错；`mvnw.cmd -B verify` 单元测试 27 个 + 集成测试 26 个全部通过（94 秒）；`npm ci && npm run build` 通过。途中遇到 P-019（旧类文件）、P-021（`CountConcurrencyIT` 在 WSL2 上取连接超时，`e4ca1e2` 只改了测试配置），README 的"Windows 注意事项"已更新（`8e9ceab`）。
 - [ ] **A0-6（AI）ES 在本机跑通**：`SEARCH_ENABLED=true`，`docker compose --profile search up -d --build`；验证 IK 分词、搜索、高亮，以及关掉 ES 后的降级。IK 插件下载不了时按 P-006 的办法本地安装。
 - [ ] **A0-7（用户决定）** 本地的 `backup/first-commit` 分支要不要删。GitHub 仓库已改名为 https://github.com/qq3939/code-nest ，旧地址 `qq3939/project-a` 会自动重定向。
 
@@ -127,7 +127,7 @@
 
 ## 4. 验收：什么时候算"能写进简历"
 
-- [ ] 用户本机能启动、能跑全部测试（A0-5）
+- [x] 用户本机能启动、能跑全部测试（A0-5）
 - [ ] README 写的是实情，包括当前状态和演示视频（A0-4、A1-4）
 - [ ] 压测报告是本机数据，含 ES 场景（A1-3）
 - [ ] 用户能讲清 5 处核心实现，并能手写关键几行（A1-5）
