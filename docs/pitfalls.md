@@ -155,3 +155,11 @@
 - **解决**：给 `JobLock.runExclusively` 加一个 `minInterval` 参数：拿到锁后再 `SET NX` 一个带过期时间的 `lock:job:<name>:ran` 标记，设置失败说明这个周期别的实例已经跑过，直接跳过（思路同 ShedLock 的 lockAtLeastFor）。低频任务用它（热门重算 5 分钟，榜单归档、看板归档、对账 1 小时）；计数写回、outbox 中继是高频且幂等的任务，多跑一次无害，仍只用锁。
 - **教训**：分布式锁只解决互斥；"只执行一次"还需要按周期去重。同时任务本身也要尽量设计成幂等，作为最后一道保险。
 - **相关提交**：30b1b26（`JobLock.java`、`ScheduledJobs.java`、`JobLockIT.java`）
+
+## P-019 单元测试报 `ClassFormatError: Invalid method Code length 0`
+
+- **现象**：在 Windows 本机第一次跑 `mvnw.cmd -B test`，`RateLimitKeyResolverTest` 的 3 个用例全部报 `ClassFormatError: Invalid method Code length 0 in class file …/AppProperties`；Maven 日志里 compiler 插件显示 "Nothing to compile - all classes are up to date"。
+- **原因**：`code-nest-core/target/classes` 里有一份更早生成的类文件（时间是当天 19:20，比源码新，所以 Maven 认为不用重新编译），其中 `AppProperties.class` 是坏的。是哪个工具生成的没有查清（可能是 IDE 的自动构建或更早的一次中断的编译）。
+- **解决**：`mvnw.cmd -B clean test`，重新编译后 27 个单元测试全部通过。
+- **教训**：Maven 的增量编译只比较时间戳，不校验类文件内容；遇到"源码没问题、类加载报错"的情况，先 `clean` 再判断。CI 每次都是干净环境，所以发现不了这类问题。
+- **相关提交**：无代码改动
