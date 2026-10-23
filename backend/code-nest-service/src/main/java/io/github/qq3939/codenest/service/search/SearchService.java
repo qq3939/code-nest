@@ -64,7 +64,10 @@ public class SearchService {
     private PageResult<SearchHitVO> searchEs(String q, long page, long size) {
         HighlightFieldParameters fieldParams = HighlightFieldParameters.builder()
                 .withFragmentSize(100).withNumberOfFragments(1).build();
-        Highlight highlight = new Highlight(HighlightParameters.builder().withPreTags(PRE).withPostTags(POST).build(),
+        // encoder=html：ES 默认把原文原样拼进高亮片段，标题里的 List<String> 会被前端当成标签删掉；
+        // 让 ES 先转义再插入 <em>，和下面 MySQL 降级的 highlight() 约定一致，前端只需要信任 <em>（P-024）
+        Highlight highlight = new Highlight(HighlightParameters.builder().withPreTags(PRE).withPostTags(POST)
+                .withEncoder("html").build(),
                 List.of(new HighlightField("title", HighlightFieldParameters.builder().withNumberOfFragments(0).build()),
                         new HighlightField("summary", HighlightFieldParameters.builder().withNumberOfFragments(0).build()),
                         new HighlightField("content", fieldParams)));
