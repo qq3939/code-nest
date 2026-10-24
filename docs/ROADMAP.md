@@ -77,7 +77,7 @@
   - 途中修了三个 bug，各自单独提交：ES 索引一直写不进去（P-022，`a13f794`，新增 `ArticleDocMappingTest`）；ES 高亮没有转义 HTML（P-024，`711550c`）；后端容器重建后 Nginx 一直 502（P-023，`294e3c5`，顺带让双实例演示不再需要重启 frontend）。另记 P-025（Git Bash 的 curl 发中文变成 GBK）。
   - 仍未覆盖：ES 查询没有自动化测试（集成测试不启动 ES）；搜索压测留给 A1-1。
 - [ ] **A0-7（用户决定）** 本地的 `backup/first-commit` 分支要不要删。GitHub 仓库已改名为 https://github.com/qq3939/code-nest ，旧地址 `qq3939/project-a` 会自动重定向。
-- [ ] **A0-8（AI，11-01 前）知识地图和补文档缺口**：阶段 1 从 11-02 开始读，这一项要先就位。
+- [x] **A0-8（AI，11-01 前）知识地图和补文档缺口**（`3093652`；途中修了一个并发 bug `573bf4f`）：阶段 1 从 11-02 开始读，这一项要先就位。
   - 新建 `docs/learn/knowledge-map.md`，并在 `docs/learn/README.md` 的索引里加上它。每行一个后端八股主题，列出项目里的位置（`文件:行号` + 函数名，没有就写"项目里没有"）、对应的学习文档章节、外部资料、面试卡（留给用户勾）。主题按下表（来自用户本机的策略文档第 8.1 节）：
 
     | 方向 | 要点 |
@@ -98,6 +98,8 @@
 
     外部资料优先用：小林 coding 图解系列（MySQL、Redis、网络、操作系统）、二哥的面渣逆袭、JavaGuide。
   - 把代码里用到、学习文档没讲的知识点补进对应里程碑的学习文档，并在知识地图里指过去。已知的有：并发容器与锁（`SseHub`、`RuntimeStrategy`、`SensitiveWordService`、`CacheService`、`OutboxPublisher` 里的 `ConcurrentHashMap`、原子类或锁）、线程池（`AsyncConfig`）、AOP（`RateLimitAspect`，现在学习文档里一次都没出现"AOP"）、策略模式（计数、Feed、缓存三组可切换策略，以及 `RoutingCountService` 按配置分派）、MVCC 与隔离级别（M2 的并发更新）。补的格式和已有知识点一致：是什么、在哪、怎么亲手验证；每份学习文档的"面试可能怎么问"也相应补题。
+  - 2026-10-24 完成：`docs/learn/knowledge-map.md` 按上表 13 个方向逐行列出项目位置、学习文档条目、外部资料（链接都核实过能打开）和面试卡；写着"项目里没有"的有 String 不可变、synchronized、JVM 内存区域、窗口函数、TCP 与 UDP 等，面试时只讲原理。补的知识点：M0 第 10 条（IoC、DI、自动配置，ROADMAP 没列但第 1 周要用）、M1 第 11 条（AOP 与代理、事务失效）、M2 第 9、10 条（策略模式；MVCC 与隔离级别，演示步骤在本机 MySQL 实测过）、M3 第 11、12 条（线程池；SSE 连接表的并发容器）、M4 第 11 条（volatile + 不可变对象）、M5 第 6 条补充，各文档补了面试题。
+  - 读 `SseHub` 时发现连接表"先查后删"的竞态，同一用户的新连接可能被误删（P-026），`573bf4f` 修复。
 - [x] **A0-9（AI，11-01 前）学习文档引用检查**（`1142562`）：写一个脚本，检查 `docs/learn/*.md` 里的 `文件:行号` 引用：展开 `docs/learn/README.md` 里的路径缩写；排除 `target/` 下的同名文件（`application.yml`、`V1__init_schema.sql` 在 `target/classes` 里也有一份）；检查文件存在、行号不越界、引用旁写的函数名就在那一行附近。加进 CI。修掉现有的偏移，比如 `learn/M5.md:11` 写的 `StatService.java:47` 和 `:117`，实际在 50 和 119 行；以后的引用一律带函数名。
   - 2026-10-24 完成：引用格式定为 `` `路径:行号`（`锚点`） ``（D-028），`scripts/check-learn-refs.py` 检查文件存在且唯一、行号不越界、锚点在上下 3 行内，CI 新增 `docs` 任务。现有 245 个引用全部补上锚点；查出的偏移除了 M5 的 `StatService`（改成 PFADD、PFCOUNT 所在的 50、119 行），还有 `Result.java`、`CountService.java`、`docker-compose.yml` 的 `depends_on`、`application.yml` 的 `springdoc` 和 `app:` 几处，已一并修正。
 
