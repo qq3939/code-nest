@@ -45,3 +45,11 @@ jobs:
       - run: npm ci
       # build 脚本里先跑 vue-tsc 类型检查，再用 Vite 打包
       - run: npm run build
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # 学习文档里的 `路径:行号`（`锚点`）引用：文件要存在、行号不越界、锚点在该行上下 3 行内。
+      # 代码改动让行号偏移时在这里失败，提醒同步改学习文档
+      - run: python3 scripts/check-learn-refs.py

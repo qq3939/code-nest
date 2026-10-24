@@ -49,6 +49,9 @@ cd backend && ./mvnw -pl code-nest-web -am spring-boot:run -Dspring-boot.run.pro
 cd backend && ./mvnw -B verify
 cd backend && ./mvnw -B -pl code-nest-web -am verify -Dit.test=AuthIT -Dtest=none -Dsurefire.failIfNoSpecifiedTests=false
 
+# 学习文档的 `路径:行号`（`锚点`）引用检查（CI 也会跑；Windows 上用 python）
+python3 scripts/check-learn-refs.py
+
 # 前端开发（Vite 把 /api 代理到 8081）与构建
 cd frontend && npm ci && npm run dev
 cd frontend && npm run build
