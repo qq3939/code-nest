@@ -39,7 +39,7 @@
 ```bash
 # 全部启动（首次加 --build）；带搜索加 --profile search，带监控加 --profile monitoring
 docker compose up -d --build
-# 双实例演示（之后 docker compose restart frontend）
+# 双实例演示（不用重启 frontend，Nginx 约 10 秒后自动解析到两个实例，见 P-023）
 docker compose up -d --build --scale backend=2
 
 # 本机跑后端（先 docker compose up -d mysql redis rabbitmq minio minio-init）
