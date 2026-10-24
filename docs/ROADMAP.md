@@ -98,7 +98,8 @@
 
     外部资料优先用：小林 coding 图解系列（MySQL、Redis、网络、操作系统）、二哥的面渣逆袭、JavaGuide。
   - 把代码里用到、学习文档没讲的知识点补进对应里程碑的学习文档，并在知识地图里指过去。已知的有：并发容器与锁（`SseHub`、`RuntimeStrategy`、`SensitiveWordService`、`CacheService`、`OutboxPublisher` 里的 `ConcurrentHashMap`、原子类或锁）、线程池（`AsyncConfig`）、AOP（`RateLimitAspect`，现在学习文档里一次都没出现"AOP"）、策略模式（计数、Feed、缓存三组可切换策略，以及 `RoutingCountService` 按配置分派）、MVCC 与隔离级别（M2 的并发更新）。补的格式和已有知识点一致：是什么、在哪、怎么亲手验证；每份学习文档的"面试可能怎么问"也相应补题。
-- [ ] **A0-9（AI，11-01 前）学习文档引用检查**：写一个脚本，检查 `docs/learn/*.md` 里的 `文件:行号` 引用：展开 `docs/learn/README.md` 里的路径缩写；排除 `target/` 下的同名文件（`application.yml`、`V1__init_schema.sql` 在 `target/classes` 里也有一份）；检查文件存在、行号不越界、引用旁写的函数名就在那一行附近。加进 CI。修掉现有的偏移，比如 `learn/M5.md:11` 写的 `StatService.java:47` 和 `:117`，实际在 50 和 119 行；以后的引用一律带函数名。
+- [x] **A0-9（AI，11-01 前）学习文档引用检查**（`1142562`）：写一个脚本，检查 `docs/learn/*.md` 里的 `文件:行号` 引用：展开 `docs/learn/README.md` 里的路径缩写；排除 `target/` 下的同名文件（`application.yml`、`V1__init_schema.sql` 在 `target/classes` 里也有一份）；检查文件存在、行号不越界、引用旁写的函数名就在那一行附近。加进 CI。修掉现有的偏移，比如 `learn/M5.md:11` 写的 `StatService.java:47` 和 `:117`，实际在 50 和 119 行；以后的引用一律带函数名。
+  - 2026-10-24 完成：引用格式定为 `` `路径:行号`（`锚点`） ``（D-028），`scripts/check-learn-refs.py` 检查文件存在且唯一、行号不越界、锚点在上下 3 行内，CI 新增 `docs` 任务。现有 245 个引用全部补上锚点；查出的偏移除了 M5 的 `StatService`（改成 PFADD、PFCOUNT 所在的 50、119 行），还有 `Result.java`、`CountService.java`、`docker-compose.yml` 的 `depends_on`、`application.yml` 的 `springdoc` 和 `app:` 几处，已一并修正。
 
 ### 阶段 1：读懂项目 + 本机数据（2026-11-02 至 2027-01-10）
 
