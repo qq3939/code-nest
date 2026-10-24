@@ -49,7 +49,13 @@ public class SseHub {
 
     public SseEmitter connect(Long userId, long unread) {
         SseEmitter emitter = new SseEmitter(TIMEOUT_MILLIS);
-        connections.computeIfAbsent(userId, k -> new CopyOnWriteArraySet<>()).add(emitter);
+        // add 必须放在 compute 里：computeIfAbsent(...).add(...) 拿到集合后、add 之前，
+        // remove 可能刚好把这个空集合从 map 里删掉，新连接就加进了一个已经不在 map 里的集合（P-026）
+        connections.compute(userId, (k, set) -> {
+            Set<SseEmitter> emitters = set != null ? set : new CopyOnWriteArraySet<>();
+            emitters.add(emitter);
+            return emitters;
+        });
         Runnable remove = () -> remove(userId, emitter);
         emitter.onCompletion(remove);
         emitter.onTimeout(remove);
@@ -90,13 +96,11 @@ public class SseHub {
         }
     }
 
+    /** "删元素、空了就删 key"要在同一个原子操作里完成；返回 null 时 ConcurrentHashMap 删除这个 key。 */
     private void remove(Long userId, SseEmitter emitter) {
-        Set<SseEmitter> emitters = connections.get(userId);
-        if (emitters != null) {
+        connections.computeIfPresent(userId, (k, emitters) -> {
             emitters.remove(emitter);
-            if (emitters.isEmpty()) {
-                connections.remove(userId, emitters);
-            }
-        }
+            return emitters.isEmpty() ? null : emitters;
+        });
     }
 }
